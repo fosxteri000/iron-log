@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useProgressData, useBodyWeight } from "../hooks/useExercises";
 import { useCheatDays } from "../hooks/useCheatDays";
 import { useProfile } from "../hooks/useProfile";
@@ -7,43 +7,70 @@ import LineChart from "../components/LineChart";
 import { DumbbellIcon, HeartPulseIcon, ScaleIcon, FlameIcon, TrophyIcon, DevilIcon } from "../components/Icons";
 
 function CountUp({ value, suffix = "" }) {
+  return <span className="count-up">{value}{suffix}</span>;
+}
+
+function RangeToggle({ value, onChange }) {
   return (
-    <span className="count-up">{value}{suffix}</span>
+    <div className="flex border border-gray-200 overflow-hidden">
+      {["week", "month"].map(r => (
+        <button
+          key={r}
+          type="button"
+          onClick={() => onChange(r)}
+          className={`flex-1 py-1 text-[10px] tracking-widest transition-colors
+            ${value === r ? "bg-black text-white" : "text-gray-400 active:bg-gray-50"}`}
+        >
+          {r === "week" ? "7D" : "30D"}
+        </button>
+      ))}
+    </div>
   );
 }
 
-function StrengthCategoryCard({ category, logs }) {
-  const totalVolume = logs.reduce((acc, l) =>
+function filterByRange(logs, range, dateKey = "date") {
+  const days = range === "week" ? 7 : 30;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().split("T")[0];
+  return logs.filter(l => (l[dateKey] || "") >= cutoffStr);
+}
+
+function StrengthCategoryCard({ category, logs, range }) {
+  const filteredLogs = useMemo(() => filterByRange(logs, range), [logs, range]);
+
+  const totalVolume = filteredLogs.reduce((acc, l) =>
     acc + l.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
 
   const chartData = useMemo(() => {
+    const days = range === "week" ? 7 : 30;
     const grouped = {};
-    logs.forEach(l => {
+    filteredLogs.forEach(l => {
       if (!grouped[l.date]) grouped[l.date] = 0;
       grouped[l.date] += l.sets.reduce((s, set) => s + set.weight * set.reps, 0);
     });
     return Object.entries(grouped)
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-10)
+      .slice(-days)
       .map(([date, value]) => ({ label: formatDate(date), value }));
-  }, [logs]);
+  }, [filteredLogs, range]);
 
+  // WoW: this period vs previous period
   const now = new Date();
-  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
-  const twoWeeksAgo = new Date(now); twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-  const wa = weekAgo.toISOString().split("T")[0];
-  const twa = twoWeeksAgo.toISOString().split("T")[0];
+  const days = range === "week" ? 7 : 30;
+  const periodStart = new Date(now); periodStart.setDate(periodStart.getDate() - days);
+  const prevStart = new Date(now); prevStart.setDate(prevStart.getDate() - days * 2);
+  const ps = periodStart.toISOString().split("T")[0];
+  const prs = prevStart.toISOString().split("T")[0];
 
-  const thisWeekVol = logs
-    .filter(l => l.date >= wa)
+  const thisVol = filteredLogs.reduce((acc, l) => acc + l.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
+  const prevVol = logs
+    .filter(l => l.date >= prs && l.date < ps)
     .reduce((acc, l) => acc + l.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
-  const lastWeekVol = logs
-    .filter(l => l.date >= twa && l.date < wa)
-    .reduce((acc, l) => acc + l.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
-  const change = calcPercentChange(thisWeekVol, lastWeekVol);
+  const change = calcPercentChange(thisVol, prevVol);
 
   const bestLifts = {};
-  logs.forEach(l => {
+  filteredLogs.forEach(l => {
     const name = l.exercise_name;
     if (!name) return;
     l.sets.forEach(s => {
@@ -60,13 +87,15 @@ function StrengthCategoryCard({ category, logs }) {
         {change !== null && (
           <span className={`text-xs font-bold tracking-wide ${parseFloat(change) >= 0 ? "" : "text-gray-400"}`}>
             {parseFloat(change) >= 0 ? "+" : ""}{change}%
-            <span className="text-[10px] text-gray-400 font-normal ml-1 tracking-widest">WoW</span>
+            <span className="text-[10px] text-gray-400 font-normal ml-1 tracking-widest">
+              {range === "week" ? "WoW" : "MoM"}
+            </span>
           </span>
         )}
       </div>
 
       <div className="mb-4">
-        <p className="text-[10px] tracking-widest text-gray-400 mb-1">TOTAL VOLUME</p>
+        <p className="text-[10px] tracking-widest text-gray-400 mb-1">VOLUME THIS {range === "week" ? "WEEK" : "MONTH"}</p>
         <p className="text-2xl font-bold">
           <CountUp value={totalVolume.toLocaleString()} />
           <span className="text-xs font-normal text-gray-400 ml-1">kg</span>
@@ -84,7 +113,9 @@ function StrengthCategoryCard({ category, logs }) {
         <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center gap-1.5 mb-2">
             <TrophyIcon size={10} className="text-gray-400" />
-            <p className="text-[10px] tracking-widest text-gray-400">BEST LIFTS</p>
+            <p className="text-[10px] tracking-widest text-gray-400">
+              BEST LIFTS ({range === "week" ? "THIS WEEK" : "THIS MONTH"})
+            </p>
           </div>
           <div className="space-y-1.5">
             {Object.entries(bestLifts)
@@ -165,6 +196,8 @@ export default function Progress() {
   const { cheatDays } = useCheatDays();
   const { profile } = useProfile();
 
+  const [range, setRange] = useState("week");
+
   const today = formatFullDate();
   const userName = profile?.name?.toUpperCase() || "You";
 
@@ -179,50 +212,58 @@ export default function Progress() {
     return map;
   }, [workoutLogs]);
 
+  const days = range === "week" ? 7 : 30;
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().split("T")[0];
+
   const totalSessions = useMemo(() => {
-    const dates = new Set(workoutLogs.map(l => l.date));
+    const dates = new Set(
+      workoutLogs.filter(l => l.date >= cutoffStr).map(l => l.date)
+    );
     return dates.size;
-  }, [workoutLogs]);
+  }, [workoutLogs, cutoffStr]);
 
   const totalVolume = useMemo(() => {
-    return workoutLogs.reduce((acc, l) =>
-      acc + l.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
-  }, [workoutLogs]);
+    return workoutLogs
+      .filter(l => l.date >= cutoffStr)
+      .reduce((acc, l) => acc + l.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
+  }, [workoutLogs, cutoffStr]);
 
-  const totalCardioSessions = cardioLogs.length;
-  const totalMinutes = cardioLogs.reduce((acc, l) => acc + l.duration_minutes, 0);
-  const totalCalories = cardioLogs.reduce((acc, l) => acc + (l.calories || 0), 0);
+  const filteredCardio = useMemo(() => cardioLogs.filter(l => l.date >= cutoffStr), [cardioLogs, cutoffStr]);
+  const totalCardioSessions = filteredCardio.length;
+  const totalMinutes = filteredCardio.reduce((acc, l) => acc + l.duration_minutes, 0);
+  const totalCalories = filteredCardio.reduce((acc, l) => acc + (l.calories || 0), 0);
 
   const cardioChartData = useMemo(() => {
-    return [...cardioLogs]
-      .reverse()
-      .slice(-10)
+    return [...filteredCardio]
+      .sort((a, b) => a.date.localeCompare(b.date))
       .map(l => ({ label: formatDate(l.date), value: l.duration_minutes }));
-  }, [cardioLogs]);
+  }, [filteredCardio]);
 
   const bwChartData = useMemo(() => {
-    return bodyWeightLogs.slice(-20).map(l => ({
+    const sliceCount = range === "week" ? 7 : 30;
+    return bodyWeightLogs.slice(-sliceCount).map(l => ({
       label: formatDate(l.date),
       value: parseFloat(l.weight_kg),
     }));
-  }, [bodyWeightLogs]);
+  }, [bodyWeightLogs, range]);
 
   const bfChartData = useMemo(() => {
+    const sliceCount = range === "week" ? 7 : 30;
     return bodyWeightLogs
       .filter(l => l.body_fat_percent != null)
-      .slice(-20)
+      .slice(-sliceCount)
       .map(l => ({
         label: formatDate(l.date),
         value: parseFloat(l.body_fat_percent),
       }));
-  }, [bodyWeightLogs]);
+  }, [bodyWeightLogs, range]);
 
   const latestWeight = bodyWeightLogs.length > 0
     ? bodyWeightLogs[bodyWeightLogs.length - 1].weight_kg : null;
   const latestFat = bodyWeightLogs.length > 0
     ? bodyWeightLogs[bodyWeightLogs.length - 1].body_fat_percent : null;
 
-  // Cheat stats — this month
   const cheatStats = useMemo(() => {
     const now = new Date();
     const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -241,15 +282,8 @@ export default function Progress() {
     [cheatStats, userName]
   );
 
-  const strengthPraise = useMemo(
-    () => getStrengthPraise(workoutLogs, userName),
-    [workoutLogs, userName]
-  );
-
-  const cardioPraise = useMemo(
-    () => getCardioPraise(cardioLogs, userName),
-    [cardioLogs, userName]
-  );
+  const strengthPraise = useMemo(() => getStrengthPraise(workoutLogs, userName), [workoutLogs, userName]);
+  const cardioPraise = useMemo(() => getCardioPraise(cardioLogs, userName), [cardioLogs, userName]);
 
   if (loading) {
     return (
@@ -261,9 +295,14 @@ export default function Progress() {
 
   return (
     <div className="fade-in">
-      <div className="mb-8">
-        <h2 className="text-xl font-bold tracking-wide">PROGRESS</h2>
-        <p className="text-[10px] tracking-[0.2em] text-gray-400 mt-1">{today}</p>
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h2 className="text-xl font-bold tracking-wide">PROGRESS</h2>
+          <p className="text-[10px] tracking-[0.2em] text-gray-400 mt-1">{today}</p>
+        </div>
+        <div className="w-24 mt-1">
+          <RangeToggle value={range} onChange={setRange} />
+        </div>
       </div>
 
       {/* Body Weight */}
@@ -275,7 +314,7 @@ export default function Progress() {
           </div>
           <div className="flex items-baseline gap-4 mb-3">
             <p className="text-3xl font-bold">
-              <CountUp value={latestWeight} suffix="" />
+              <CountUp value={latestWeight} />
               <span className="text-xs font-normal text-gray-400 ml-1">kg</span>
             </p>
             {latestFat != null && (
@@ -286,13 +325,17 @@ export default function Progress() {
           </div>
           {bwChartData.length >= 2 && (
             <div className="mb-2">
-              <p className="text-[10px] tracking-widest text-gray-400 mb-1">WEIGHT</p>
+              <p className="text-[10px] tracking-widest text-gray-400 mb-1">
+                WEIGHT — LAST {range === "week" ? "7 DAYS" : "30 DAYS"}
+              </p>
               <LineChart data={bwChartData} height={60} />
             </div>
           )}
           {bfChartData.length >= 2 && (
             <div>
-              <p className="text-[10px] tracking-widest text-gray-400 mb-1 mt-3">BODY FAT %</p>
+              <p className="text-[10px] tracking-widest text-gray-400 mb-1 mt-3">
+                BODY FAT % — LAST {range === "week" ? "7 DAYS" : "30 DAYS"}
+              </p>
               <LineChart data={bfChartData} height={60} />
             </div>
           )}
@@ -313,11 +356,13 @@ export default function Progress() {
 
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="border border-black p-4 stagger-item" style={{ "--i": 1 }}>
-            <p className="text-[10px] tracking-widest text-gray-400 mb-1">SESSIONS</p>
+            <p className="text-[10px] tracking-widest text-gray-400 mb-1">
+              SESSIONS ({range === "week" ? "7D" : "30D"})
+            </p>
             <p className="text-3xl font-bold"><CountUp value={totalSessions} /></p>
           </div>
           <div className="border border-black p-4 stagger-item" style={{ "--i": 2 }}>
-            <p className="text-[10px] tracking-widest text-gray-400 mb-1">TOTAL VOLUME</p>
+            <p className="text-[10px] tracking-widest text-gray-400 mb-1">VOLUME</p>
             <p className="text-3xl font-bold"><CountUp value={(totalVolume / 1000).toFixed(1)} /></p>
             <p className="text-[10px] text-gray-400">TONNES</p>
           </div>
@@ -330,7 +375,7 @@ export default function Progress() {
         ) : (
           ["Push", "Pull", "Leg"].map(cat =>
             byCategory[cat] && byCategory[cat].length > 0 ? (
-              <StrengthCategoryCard key={cat} category={cat} logs={byCategory[cat]} />
+              <StrengthCategoryCard key={cat} category={cat} logs={byCategory[cat]} range={range} />
             ) : null
           )
         )}
@@ -368,14 +413,16 @@ export default function Progress() {
 
         {cardioChartData.length >= 2 && (
           <div className="border border-gray-200 p-4 mb-4">
-            <p className="text-[10px] tracking-widest text-gray-400 mb-2">DURATION TREND</p>
+            <p className="text-[10px] tracking-widest text-gray-400 mb-2">
+              DURATION — LAST {range === "week" ? "7 DAYS" : "30 DAYS"}
+            </p>
             <LineChart data={cardioChartData} height={70} />
           </div>
         )}
 
-        {cardioLogs.length === 0 && (
+        {filteredCardio.length === 0 && (
           <div className="text-center py-8 border border-gray-200">
-            <p className="text-[10px] tracking-[0.3em] text-gray-300">NO CARDIO DATA YET</p>
+            <p className="text-[10px] tracking-[0.3em] text-gray-300">NO CARDIO THIS {range === "week" ? "WEEK" : "MONTH"}</p>
           </div>
         )}
       </div>
@@ -415,7 +462,6 @@ export default function Progress() {
               </div>
             </div>
 
-            {/* Breakdown */}
             <div className="border border-gray-200 p-4 mb-4">
               <p className="text-[10px] tracking-widest text-gray-400 mb-3">BREAKDOWN</p>
               <div className="space-y-2">
@@ -441,7 +487,6 @@ export default function Progress() {
               </div>
             </div>
 
-            {/* Roast message */}
             {cheatRoast && (
               <div className="p-4 border border-gray-200 bg-gray-50">
                 <p className="text-xs tracking-wide leading-relaxed text-center">{cheatRoast}</p>

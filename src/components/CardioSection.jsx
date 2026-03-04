@@ -5,6 +5,32 @@ import Collapse from "./Collapse";
 import LineChart from "./LineChart";
 import { HeartPulseIcon, CARDIO_TYPE_ICONS, CARDIO_TYPES } from "./Icons";
 
+const LEVEL_OPTIONS = Array.from({ length: 39 }, (_, i) => (1 + i * 0.5).toFixed(1));
+
+function LevelPicker({ label, value, onChange }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-[10px] tracking-widest text-gray-400">{label}</label>
+        <span className="text-xs font-bold tabular-nums">{value || "—"}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-[9px] text-gray-400">1</span>
+        <input
+          type="range"
+          min="1"
+          max="20"
+          step="0.5"
+          value={value || 1}
+          onChange={e => onChange(e.target.value)}
+          className="flex-1 accent-black h-1 cursor-pointer"
+        />
+        <span className="text-[9px] text-gray-400">20</span>
+      </div>
+    </div>
+  );
+}
+
 export default function CardioSection() {
   const [open, setOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
@@ -14,6 +40,8 @@ export default function CardioSection() {
     duration_minutes: "",
     distance_km: "",
     calories: "",
+    incline_level: "",
+    speed_level: "",
   });
   const [done, setDone] = useState(false);
   const { sessions, logCardio } = useCardio();
@@ -25,6 +53,8 @@ export default function CardioSection() {
       .map(s => ({ label: formatDate(s.date), value: s.duration_minutes }));
   }, [sessions]);
 
+  const isTreadmill = form.type === "Run" || form.type === "Walk";
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const resolvedType = form.type === "Other" ? (form.custom_type.trim() || "Other") : form.type;
@@ -33,9 +63,11 @@ export default function CardioSection() {
       duration_minutes: parseInt(form.duration_minutes),
       distance_km: form.distance_km ? parseFloat(form.distance_km) : null,
       calories: form.calories ? parseInt(form.calories) : null,
+      incline_level: isTreadmill && form.incline_level ? parseFloat(form.incline_level) : null,
+      speed_level: isTreadmill && form.speed_level ? parseFloat(form.speed_level) : null,
     });
     setDone(true);
-    setForm({ type: "Run", custom_type: "", duration_minutes: "", distance_km: "", calories: "" });
+    setForm({ type: "Run", custom_type: "", duration_minutes: "", distance_km: "", calories: "", incline_level: "", speed_level: "" });
     setTimeout(() => { setDone(false); setLogOpen(false); }, 1200);
   };
 
@@ -74,7 +106,7 @@ export default function CardioSection() {
                       <button
                         key={t}
                         type="button"
-                        onClick={() => setForm(f => ({ ...f, type: t }))}
+                        onClick={() => setForm(f => ({ ...f, type: t, incline_level: "", speed_level: "" }))}
                         className={`flex flex-col items-center gap-1 py-2 border text-[9px] tracking-wide transition-colors
                           ${active ? "bg-black text-white border-black" : "border-gray-200 active:border-black"}`}
                       >
@@ -85,7 +117,6 @@ export default function CardioSection() {
                   })}
                 </div>
 
-                {/* Custom type name when "Other" selected */}
                 {form.type === "Other" && (
                   <input
                     type="text"
@@ -96,6 +127,23 @@ export default function CardioSection() {
                   />
                 )}
               </div>
+
+              {/* Incline + Speed — Run/Walk only */}
+              {isTreadmill && (
+                <div className="space-y-4 p-3 border border-gray-100 bg-gray-50">
+                  <p className="text-[9px] tracking-widest text-gray-400 uppercase">Treadmill Settings (opt.)</p>
+                  <LevelPicker
+                    label="INCLINE LEVEL"
+                    value={form.incline_level}
+                    onChange={v => setForm(f => ({ ...f, incline_level: v }))}
+                  />
+                  <LevelPicker
+                    label="SPEED LEVEL"
+                    value={form.speed_level}
+                    onChange={v => setForm(f => ({ ...f, speed_level: v }))}
+                  />
+                </div>
+              )}
 
               {/* Duration + Distance */}
               <div className="grid grid-cols-2 gap-4">
@@ -157,16 +205,27 @@ export default function CardioSection() {
 
           {sessions.slice(0, 6).map(s => {
             const TypeIcon = CARDIO_TYPE_ICONS[s.type] || HeartPulseIcon;
+            const hasTreadmill = s.incline_level || s.speed_level;
             return (
-              <div key={s.id} className="flex items-center justify-between py-2.5 border-b border-gray-100">
-                <div className="flex items-center gap-2">
-                  <TypeIcon size={12} className="text-gray-400 shrink-0" />
+              <div key={s.id} className="flex items-start justify-between py-2.5 border-b border-gray-100">
+                <div className="flex items-start gap-2">
+                  <TypeIcon size={12} className="text-gray-400 shrink-0 mt-0.5" />
                   <div>
                     <span className="text-[10px] tracking-widest text-gray-400">
                       {s.type || "CARDIO"} · {formatDate(s.date)}
                     </span>
                     {s.distance_km && (
                       <span className="text-[10px] text-gray-300 ml-2">{s.distance_km} km</span>
+                    )}
+                    {hasTreadmill && (
+                      <div className="flex gap-2 mt-0.5">
+                        {s.incline_level && (
+                          <span className="text-[9px] text-gray-300">↑ {s.incline_level}</span>
+                        )}
+                        {s.speed_level && (
+                          <span className="text-[9px] text-gray-300">→ {s.speed_level}</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

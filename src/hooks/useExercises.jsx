@@ -33,6 +33,16 @@ export function useExercises() {
     return { data, error };
   }
 
+  async function addExercises(exerciseList) {
+    const rows = exerciseList.map(ex => ({ ...ex, user_id: userId }));
+    const { data, error } = await supabase
+      .from("exercises")
+      .insert(rows)
+      .select();
+    if (!error && data) setExercises(prev => [...prev, ...data]);
+    return { data, error };
+  }
+
   async function deleteExercise(id) {
     const { error } = await supabase
       .from("exercises")
@@ -43,7 +53,7 @@ export function useExercises() {
     return { error };
   }
 
-  return { exercises, loading, refetch: fetchExercises, addExercise, deleteExercise };
+  return { exercises, loading, refetch: fetchExercises, addExercise, addExercises, deleteExercise };
 }
 
 // ── Exercise History ─────────────────────────────────────────
@@ -218,7 +228,7 @@ export function useCardio() {
     })();
   }, [userId]);
 
-  const logCardio = useCallback(async ({ duration_minutes, calories, type, distance_km }) => {
+  const logCardio = useCallback(async ({ duration_minutes, calories, type, distance_km, incline_level, speed_level }) => {
     if (!userId) return { error: "Not authenticated" };
     const today = new Date().toISOString().split("T")[0];
     const payload = {
@@ -228,6 +238,8 @@ export function useCardio() {
       user_id: userId,
       type: type || "Run",
       distance_km: distance_km ? parseFloat(distance_km) : null,
+      incline_level: incline_level ? parseFloat(incline_level) : null,
+      speed_level: speed_level ? parseFloat(speed_level) : null,
     };
     const { data, error } = await supabase
       .from("cardio_sessions")

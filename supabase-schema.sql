@@ -58,6 +58,8 @@ CREATE TABLE cardio_sessions (
   notes             TEXT,
   type              TEXT DEFAULT 'Run',
   distance_km       NUMERIC(5,2),
+  incline_level     NUMERIC(4,1),
+  speed_level       NUMERIC(4,1),
   created_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -105,6 +107,11 @@ ALTER TABLE cheat_days DISABLE ROW LEVEL SECURITY;
 -- Run these if upgrading an existing cardio_sessions table:
 -- ALTER TABLE cardio_sessions ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'Run';
 -- ALTER TABLE cardio_sessions ADD COLUMN IF NOT EXISTS distance_km NUMERIC(5,2);
+
+-- ─── CARDIO INCLINE & SPEED MIGRATION ────────────────────────
+-- Run these to add treadmill-style tracking for Run & Walk:
+-- ALTER TABLE cardio_sessions ADD COLUMN IF NOT EXISTS incline_level NUMERIC(4,1);
+-- ALTER TABLE cardio_sessions ADD COLUMN IF NOT EXISTS speed_level NUMERIC(4,1);
 
 -- ─── USER PROFILES ───────────────────────────────────────────
 CREATE TABLE user_profiles (

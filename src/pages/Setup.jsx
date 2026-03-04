@@ -100,19 +100,22 @@ export default function Setup() {
             <p className="text-[10px] text-gray-400 tracking-[0.3em]">YOU CAN CHANGE THIS ANYTIME IN SETTINGS</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-children">
             {SPLIT_TYPES.map(s => {
               const SplitIcon = SPLIT_ICONS[s.id];
               return (
                 <button
                   key={s.id}
                   onClick={() => handleSplitSelect(s.id)}
-                  className="w-full flex items-center gap-4 py-4 px-4 border border-black active:bg-black active:text-white transition-colors r-card"
+                  className="w-full flex items-center gap-4 py-4 px-4 border border-black active:bg-black active:text-white transition-colors r-card hover-lift"
                 >
                   {SplitIcon && <SplitIcon size={40} className="shrink-0 opacity-70" />}
-                  <div className="text-left flex-1">
+                  <div className="text-left flex-1 min-w-0">
                     <p className="text-xs font-bold tracking-[0.2em]">{s.label}</p>
-                    <p className="text-[10px] text-gray-400 tracking-wide mt-0.5">{s.desc}</p>
+                    {s.sublabel && (
+                      <p className="text-[11px] tracking-wide mt-0.5">{s.sublabel}</p>
+                    )}
+                    <p className="text-[10px] text-gray-400 tracking-wide mt-0.5 leading-relaxed">{s.desc}</p>
                   </div>
                   <span className="text-gray-400 text-sm shrink-0">→</span>
                 </button>

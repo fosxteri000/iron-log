@@ -28,8 +28,11 @@ function SplitPicker({ current, onSelect }) {
                 <SplitIcon size={32} className={`shrink-0 ${isActive ? "opacity-100" : "opacity-50"}`} />
               </span>
             )}
-            <div className="text-left flex-1">
+            <div className="text-left flex-1 min-w-0">
               <p className="text-xs font-bold tracking-[0.2em]">{s.label}</p>
+              {s.sublabel && (
+                <p className={`text-[11px] tracking-wide mt-0.5 ${isActive ? "opacity-80" : ""}`}>{s.sublabel}</p>
+              )}
               <p className={`text-[10px] tracking-wide mt-0.5 ${isActive ? "text-gray-300" : "text-gray-400"}`}>{s.desc}</p>
             </div>
             {isActive && <span className="text-xs shrink-0">✓</span>}
