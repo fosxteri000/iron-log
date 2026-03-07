@@ -38,6 +38,23 @@ export function randomFrom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+/** "today" as a YYYY-MM-DD string */
+export function todayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+/** Capitalise first character: "clean" → "Clean" */
+export function capitalize(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/** Filter an array of objects (with a .date string) to the current week */
+export function filterCurrentWeek(logs) {
+  const startStr = getStartOfWeek().toISOString().split("T")[0];
+  return logs.filter(l => l.date >= startStr);
+}
+
 /**
  * Progressive overload suggestion based on category and last session best set.
  * Push/Pull: +2.5kg same reps. Leg: +5kg same reps.
