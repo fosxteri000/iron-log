@@ -129,7 +129,7 @@ export default function FoodSection() {
             );
           })}
 
-          {meals.length === 0 && (
+          {meals.length === 0 && !cardOpen && (
             <p className="text-[10px] text-gray-300 tracking-widest text-center py-4">
               NO MEALS LOGGED TODAY
             </p>
@@ -137,14 +137,17 @@ export default function FoodSection() {
         </div>
       </Collapse>
 
-      {/* Bottom sheet card */}
-      <FoodLogCard
-        key={editingMeal?.id ?? "new-food"}
-        open={cardOpen}
-        onClose={closeCard}
-        meal={editingMeal}
-        onSave={handleSave}
-      />
+      {/* Inline multi-step card — expands below the section header, pushes page down */}
+      <Collapse open={cardOpen}>
+        <div className="border border-gray-200 fade-in mb-2">
+          <FoodLogCard
+            key={editingMeal?.id ?? "new-food"}
+            onClose={closeCard}
+            meal={editingMeal}
+            onSave={handleSave}
+          />
+        </div>
+      </Collapse>
     </div>
   );
 }

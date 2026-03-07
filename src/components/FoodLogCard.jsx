@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import BottomSheet from "./BottomSheet";
 import DrumPicker from "./DrumPicker";
 import {
   BreakfastIcon,
@@ -82,7 +81,7 @@ function StepDots({ current, total, onJump }) {
 
 // ─── Main Component ───────────────────────────────────────────
 
-export default function FoodLogCard({ open, onClose, meal, onSave }) {
+export default function FoodLogCard({ onClose, meal, onSave }) {
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState("forward");
 
@@ -393,8 +392,8 @@ export default function FoodLogCard({ open, onClose, meal, onSave }) {
   const steps = [step1, step2, step3, step4];
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
-      <div style={{ padding: "16px 20px 32px" }}>
+    <div style={{ position: "relative", overflow: "hidden" }}>
+      <div style={{ padding: "12px 16px 20px" }}>
         {/* Header: back + dots */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
           <button
@@ -424,6 +423,6 @@ export default function FoodLogCard({ open, onClose, meal, onSave }) {
           {steps[step - 1]}
         </div>
       </div>
-    </BottomSheet>
+    </div>
   );
 }
