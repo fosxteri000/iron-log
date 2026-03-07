@@ -452,7 +452,20 @@ input[type="range"]::-moz-range-thumb {
   animation: sheetUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* ─── STEP TRANSITIONS ────────────────────────────────────── */
+/* ─── FOOD STEP TRANSITIONS ───────────────────────────────── */
+@keyframes foodStepFwd {
+  from { opacity: 0; transform: translateX(60%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes foodStepBack {
+  from { opacity: 0; transform: translateX(-60%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.food-step-fwd  { animation: foodStepFwd  0.2s ease forwards; }
+.food-step-back { animation: foodStepBack 0.2s ease forwards; }
+.food-steps-container { overflow: hidden; position: relative; width: 100%; }
+
+/* ─── STEP TRANSITIONS (kept for other use) ──────────────── */
 @keyframes stepIn {
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }

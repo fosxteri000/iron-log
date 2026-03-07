@@ -1,20 +1,14 @@
 import React, { useState } from "react";
 import { useFoodLog } from "../hooks/useFoodLog";
 import Collapse from "./Collapse";
-import FoodLogCard from "./FoodLogCard";
+import FoodLogSteps from "./FoodLogSteps";
 import { ForkKnifeIcon, EditIcon } from "./Icons";
 import {
-  BreakfastIcon,
-  LunchIcon,
-  DinnerIcon,
-  SnackIcon,
-  OtherFoodIcon,
-  CleanFoodIcon,
-  MixedFoodIcon,
-  JunkFoodIcon,
+  BreakfastIcon, LunchIcon, DinnerIcon, SnackIcon, OtherFoodIcon,
+  CleanFoodIcon, MixedFoodIcon, JunkFoodIcon,
 } from "../icons/FoodIcons";
 
-// ─── Helpers ──────────────────────────────────────────────────
+// ─── Row helpers ──────────────────────────────────────────────
 
 const MEAL_ICONS = {
   breakfast: BreakfastIcon,
@@ -31,31 +25,30 @@ const QUALITY_ICONS = {
 };
 
 function cap(str) {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 }
 
 function buildSummary(meal) {
   const parts = [cap(meal.meal_type)];
-  if (meal.calories != null)  parts.push(`${meal.calories} kcal`);
+  if (meal.calories  != null) parts.push(`${meal.calories} kcal`);
   if (meal.protein_g != null) parts.push(`${meal.protein_g}g P`);
-  if (meal.carbs_g != null)   parts.push(`${meal.carbs_g}g C`);
-  if (meal.fat_g != null)     parts.push(`${meal.fat_g}g F`);
+  if (meal.carbs_g   != null) parts.push(`${meal.carbs_g}g C`);
+  if (meal.fat_g     != null) parts.push(`${meal.fat_g}g F`);
   return parts.join(" · ");
 }
 
 // ─── Component ────────────────────────────────────────────────
 
 export default function FoodSection() {
-  const [open, setOpen]               = useState(false);
-  const [cardOpen, setCardOpen]       = useState(false);
+  const [open,        setOpen]        = useState(false);
+  const [formOpen,    setFormOpen]    = useState(false);
   const [editingMeal, setEditingMeal] = useState(null);
 
   const { meals, addMeal, updateMeal } = useFoodLog();
 
-  const openNew  = () => { setEditingMeal(null);  setCardOpen(true); };
-  const openEdit = (meal) => { setEditingMeal(meal); setCardOpen(true); };
-  const closeCard = () => { setCardOpen(false); setEditingMeal(null); };
+  const openNew  = () => { setEditingMeal(null);  setFormOpen(true);  };
+  const openEdit = (meal) => { setEditingMeal(meal); setFormOpen(true);  };
+  const closeForm = () => { setFormOpen(false); setEditingMeal(null); };
 
   const handleSave = async (data) => {
     if (editingMeal) {
@@ -67,7 +60,7 @@ export default function FoodSection() {
 
   return (
     <div className="mb-4">
-      {/* Section header */}
+      {/* Section header — identical pattern to Cardio */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
@@ -86,7 +79,8 @@ export default function FoodSection() {
 
       <Collapse open={open}>
         <div className="pt-2 pb-2">
-          {/* Log food button */}
+
+          {/* + LOG FOOD button — same style as + LOG CARDIO */}
           <button
             onClick={openNew}
             className="w-full py-3.5 border border-black text-xs tracking-widest active:bg-black active:text-white transition-colors mb-3"
@@ -94,7 +88,19 @@ export default function FoodSection() {
             + LOG FOOD
           </button>
 
-          {/* Saved meal rows */}
+          {/* Multi-step form expands inline — identical to Cardio log form Collapse */}
+          <Collapse open={formOpen}>
+            <div className="mb-4 border border-gray-200 fade-in">
+              <FoodLogSteps
+                key={editingMeal?.id ?? "new"}
+                meal={editingMeal}
+                onSave={handleSave}
+                onClose={closeForm}
+              />
+            </div>
+          </Collapse>
+
+          {/* Saved meal rows — same pattern as Cardio session rows */}
           {meals.map(meal => {
             const TypeIcon = MEAL_ICONS[meal.meal_type] || OtherFoodIcon;
             const QualIcon = meal.quality ? QUALITY_ICONS[meal.quality] : null;
@@ -129,23 +135,12 @@ export default function FoodSection() {
             );
           })}
 
-          {meals.length === 0 && !cardOpen && (
+          {meals.length === 0 && !formOpen && (
             <p className="text-[10px] text-gray-300 tracking-widest text-center py-4">
               NO MEALS LOGGED TODAY
             </p>
           )}
-        </div>
-      </Collapse>
 
-      {/* Inline multi-step card — expands below the section header, pushes page down */}
-      <Collapse open={cardOpen}>
-        <div className="border border-gray-200 fade-in mb-2">
-          <FoodLogCard
-            key={editingMeal?.id ?? "new-food"}
-            onClose={closeCard}
-            meal={editingMeal}
-            onSave={handleSave}
-          />
         </div>
       </Collapse>
     </div>
