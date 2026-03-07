@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExercises } from "../hooks/useExercises";
 import { useProfile } from "../hooks/useProfile";
+import { scrollSectionToCenter } from "../lib/utils";
 import Collapse from "./Collapse";
 import ExerciseInlineForm from "./ExerciseInlineForm";
 import { CATEGORY_ICONS, TrashIcon } from "./Icons";
@@ -18,6 +19,7 @@ function Chevron({ open }) {
 }
 
 export default function CategorySection({ title, exercises, doneIds }) {
+  const sectionRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
@@ -41,10 +43,10 @@ export default function CategorySection({ title, exercises, doneIds }) {
   };
 
   return (
-    <div className="mb-4">
+    <div ref={sectionRef} className="mb-4">
       {/* Section header */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) scrollSectionToCenter(sectionRef); return !o; })}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useSleepLog } from "../hooks/useSleepLog";
+import { scrollSectionToCenter } from "../lib/utils";
 import Collapse from "./Collapse";
 import DrumPicker from "./DrumPicker";
 import { MoonIcon, EditIcon } from "./Icons";
@@ -37,6 +38,7 @@ function buildSummary(log) {
 // ─── Component ────────────────────────────────────────────────
 
 export default function SleepSection() {
+  const sectionRef = useRef(null);
   const [open,    setOpen]    = useState(false);
   const [logOpen, setLogOpen] = useState(false);
 
@@ -72,10 +74,10 @@ export default function SleepSection() {
   };
 
   return (
-    <div className="mb-4">
+    <div ref={sectionRef} className="mb-4">
       {/* Section header — identical to Cardio */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) scrollSectionToCenter(sectionRef); return !o; })}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">

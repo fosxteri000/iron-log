@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useFoodLog } from "../hooks/useFoodLog";
+import { scrollSectionToCenter } from "../lib/utils";
 import Collapse from "./Collapse";
 import FoodLogSteps from "./FoodLogSteps";
 import { ForkKnifeIcon, EditIcon } from "./Icons";
@@ -40,6 +41,7 @@ function buildSummary(meal) {
 // ─── Component ────────────────────────────────────────────────
 
 export default function FoodSection() {
+  const sectionRef = useRef(null);
   const [open,        setOpen]        = useState(false);
   const [formOpen,    setFormOpen]    = useState(false);
   const [editingMeal, setEditingMeal] = useState(null);
@@ -59,10 +61,10 @@ export default function FoodSection() {
   };
 
   return (
-    <div className="mb-4">
+    <div ref={sectionRef} className="mb-4">
       {/* Section header — identical pattern to Cardio */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) scrollSectionToCenter(sectionRef); return !o; })}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">

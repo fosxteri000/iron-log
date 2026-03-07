@@ -148,6 +148,55 @@ export function getVolumeTrend(workoutLogs, mode = "weekly") {
   return points;
 }
 
+export function getFoodLast7Days(foodLogs) {
+  const today = new Date();
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (6 - i));
+    return {
+      date: d.toISOString().split("T")[0],
+      day: d.toLocaleDateString("en-GB", { weekday: "short" }),
+    };
+  });
+  const grouped = {};
+  foodLogs.forEach(log => {
+    if (!grouped[log.date]) grouped[log.date] = { calories: 0, quality: [], count: 0 };
+    grouped[log.date].calories += log.calories || 0;
+    if (log.quality) grouped[log.date].quality.push(log.quality);
+    grouped[log.date].count++;
+  });
+  return days.map(({ date, day }) => {
+    const g = grouped[date] || { calories: 0, quality: [], count: 0 };
+    const qualityCounts = {};
+    g.quality.forEach(q => { qualityCounts[q] = (qualityCounts[q] || 0) + 1; });
+    const dominantQ = Object.entries(qualityCounts).sort(([, a], [, b]) => b - a)[0]?.[0] || null;
+    return { date, day, calories: g.calories, meals: g.count, quality: dominantQ };
+  });
+}
+
+export function getSleepLast7Days(sleepLogs) {
+  const today = new Date();
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (6 - i));
+    return {
+      date: d.toISOString().split("T")[0],
+      day: d.toLocaleDateString("en-GB", { weekday: "short" }),
+    };
+  });
+  const byDate = {};
+  sleepLogs.forEach(l => { byDate[l.date] = l; });
+  return days.map(({ date, day }) => {
+    const log = byDate[date] || null;
+    return {
+      date,
+      day,
+      duration: log?.duration_hours || 0,
+      quality: log?.quality || null,
+    };
+  });
+}
+
 export function getBestSession(workoutLogs) {
   const today = new Date();
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);

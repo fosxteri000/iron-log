@@ -198,10 +198,10 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
   // ── Step 2: Calories ──────────────────────────────────────
   const step2 = (
     <div>
-      <p className="text-[10px] tracking-widest text-gray-400 mb-4">CALORIES</p>
+      <p className="text-[10px] tracking-widest text-gray-400 mb-4 text-center">CALORIES</p>
 
-      {/* Range pills */}
-      <div className="flex flex-wrap gap-1.5 mb-5">
+      {/* Range pills — centred */}
+      <div className="flex flex-wrap gap-1.5 mb-5 justify-center">
         {CAL_RANGES.map(r => {
           const active = calRange === r.label;
           return (
@@ -226,8 +226,8 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
         })}
       </div>
 
-      {/* Large underline input */}
-      <div className="flex items-baseline justify-center gap-2">
+      {/* 48px number input, kcal label below — centred */}
+      <div className="flex flex-col items-center gap-1">
         <input
           type="number"
           inputMode="numeric"
@@ -238,8 +238,8 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
             setCalories(e.target.value ? parseInt(e.target.value) : null);
             setCalRange(null);
           }}
-          className="w-28 border-b border-black py-1 text-center focus:outline-none bg-transparent"
-          style={{ fontSize: 28, fontWeight: 300 }}
+          className="w-32 border-b border-black py-1 text-center focus:outline-none bg-transparent"
+          style={{ fontSize: 48, fontWeight: 300, lineHeight: 1 }}
         />
         <span className="text-[11px] text-gray-400 tracking-widest">kcal</span>
       </div>
@@ -253,13 +253,13 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
     <div>
       <p className="text-[10px] tracking-widest text-gray-400 mb-4">MACROS</p>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="flex justify-between gap-3">
         {[
           { key: "carbs",   label: "CARBS"   },
           { key: "protein", label: "PROTEIN" },
           { key: "fat",     label: "FAT"     },
         ].map(({ key, label }) => (
-          <div key={key} className="flex flex-col items-center gap-2">
+          <div key={key} className="flex flex-col items-center gap-2 flex-1">
             <DrumPicker
               key={`${key}-${meal?.id ?? "new"}`}
               items={MACRO_ITEMS}

@@ -1,4 +1,7 @@
 import React, { useMemo, useState } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+} from "recharts";
 import { useProgressData } from "../hooks/useExercises";
 import { useCheatDays } from "../hooks/useCheatDays";
 import { useProfile } from "../hooks/useProfile";
@@ -8,6 +11,7 @@ import { formatFullDate, getStartOfWeek } from "../lib/utils";
 import {
   getWeekSummary, getCurrentStreak, getBalanceData,
   getSplitBreakdown, getWeeklySessions, getVolumeTrend, getBestSession,
+  getFoodLast7Days, getSleepLast7Days,
 } from "../lib/statsQueries";
 import { getDonutMessage, getBarMessage, getVolumeMessage } from "../lib/statsInsights";
 import { getFoodWeekStats } from "../lib/foodStats";
@@ -100,6 +104,28 @@ export default function Progress() {
   // Section 2b: Food + Sleep insight cards
   const foodStats = useMemo(() => getFoodWeekStats(foodLogs), [foodLogs]);
   const sleepStats = useMemo(() => getSleepWeekStats(sleepLogs), [sleepLogs]);
+
+  // Section 7: Nutrition & Sleep charts (last 7 days)
+  const foodChartData  = useMemo(() => getFoodLast7Days(foodLogs),   [foodLogs]);
+  const sleepChartData = useMemo(() => getSleepLast7Days(sleepLogs), [sleepLogs]);
+
+  const avgKcalDay = useMemo(() => {
+    const active = foodChartData.filter(d => d.calories > 0);
+    if (!active.length) return null;
+    return Math.round(active.reduce((a, d) => a + d.calories, 0) / active.length);
+  }, [foodChartData]);
+
+  const mostCommonFoodQuality = useMemo(() => {
+    const counts = {};
+    foodChartData.forEach(d => { if (d.quality) counts[d.quality] = (counts[d.quality] || 0) + 1; });
+    return Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] || null;
+  }, [foodChartData]);
+
+  const avgSleepHours = useMemo(() => {
+    const active = sleepChartData.filter(d => d.duration > 0);
+    if (!active.length) return null;
+    return (active.reduce((a, d) => a + d.duration, 0) / active.length).toFixed(1);
+  }, [sleepChartData]);
 
   // Section 6: Best lifts (last 30 days, grouped by category)
   const bestLiftsByCategory = useMemo(() => {
@@ -237,6 +263,129 @@ export default function Progress() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 7. Nutrition & Sleep */}
+      {(foodChartData.some(d => d.calories > 0) || sleepChartData.some(d => d.duration > 0)) && (
+        <div className="mb-6">
+          <p className="text-[11px] font-bold tracking-[0.12em] mb-4">NUTRITION & SLEEP</p>
+          <div className="grid grid-cols-2 gap-3">
+
+            {/* Food column */}
+            <div style={{ border: "1px solid var(--t-border)" }}>
+              <div className="p-2.5">
+                <p className="text-[10px] font-bold tracking-[0.2em] mb-0.5">FOOD</p>
+                {avgKcalDay && (
+                  <p className="text-[9px] text-gray-400 tracking-wide">{avgKcalDay} avg kcal/day</p>
+                )}
+                {mostCommonFoodQuality && (
+                  <p className="text-[9px] text-gray-400 tracking-wide mb-2">
+                    Mostly {mostCommonFoodQuality}
+                  </p>
+                )}
+                {!avgKcalDay && <div className="mb-2" />}
+                <ResponsiveContainer width="100%" height={70}>
+                  <BarChart
+                    data={foodChartData}
+                    barSize={14}
+                    margin={{ top: 0, right: 0, left: -28, bottom: 0 }}
+                  >
+                    <XAxis
+                      dataKey="day"
+                      tick={{ fontSize: 8, fill: "#9ca3af" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis hide />
+                    <Tooltip
+                      cursor={false}
+                      formatter={v => v > 0 ? [`${v} kcal`, "Calories"] : ["—", ""]}
+                      contentStyle={{ border: "1px solid #e5e7eb", borderRadius: 0, fontSize: 9, padding: "2px 6px" }}
+                    />
+                    <Bar dataKey="calories" radius={0}>
+                      {foodChartData.map((d, i) => (
+                        <Cell
+                          key={i}
+                          fill={
+                            d.quality === "clean" ? "#22c55e"
+                            : d.quality === "junk"  ? "#ef4444"
+                            : d.quality === "mixed" ? "#f59e0b"
+                            : "#d1d5db"
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Sleep column */}
+            <div style={{ border: "1px solid var(--t-border)" }}>
+              <div className="p-2.5">
+                <p className="text-[10px] font-bold tracking-[0.2em] mb-0.5">SLEEP</p>
+                {avgSleepHours && (
+                  <p className="text-[9px] text-gray-400 tracking-wide mb-2">{avgSleepHours}h avg / night</p>
+                )}
+                {!avgSleepHours && <div className="mb-2" />}
+                <ResponsiveContainer width="100%" height={70}>
+                  <BarChart
+                    data={sleepChartData}
+                    barSize={14}
+                    margin={{ top: 0, right: 0, left: -28, bottom: 0 }}
+                  >
+                    <XAxis
+                      dataKey="day"
+                      tick={{ fontSize: 8, fill: "#9ca3af" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis hide domain={[0, 12]} />
+                    <Tooltip
+                      cursor={false}
+                      formatter={v => v > 0 ? [`${v}h`, "Sleep"] : ["—", ""]}
+                      contentStyle={{ border: "1px solid #e5e7eb", borderRadius: 0, fontSize: 9, padding: "2px 6px" }}
+                    />
+                    <Bar dataKey="duration" radius={0}>
+                      {sleepChartData.map((d, i) => (
+                        <Cell
+                          key={i}
+                          fill={
+                            d.quality === "great" ? "#22c55e"
+                            : d.quality === "ok"   ? "#6b7280"
+                            : d.quality === "poor" ? "#ef4444"
+                            : "#e5e7eb"
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2" style={{ backgroundColor: "#22c55e" }} />
+              <span className="text-[9px] text-gray-400">Clean / Great</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2" style={{ backgroundColor: "#f59e0b" }} />
+              <span className="text-[9px] text-gray-400">Mixed</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2" style={{ backgroundColor: "#ef4444" }} />
+              <span className="text-[9px] text-gray-400">Junk / Poor</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2" style={{ backgroundColor: "#d1d5db" }} />
+              <span className="text-[9px] text-gray-400">No data</span>
+            </div>
+          </div>
         </div>
       )}
     </div>

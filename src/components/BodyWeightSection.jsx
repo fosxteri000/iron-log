@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useBodyWeight } from "../hooks/useExercises";
-import { formatDate } from "../lib/utils";
+import { formatDate, scrollSectionToCenter } from "../lib/utils";
 import LineChart from "./LineChart";
 import Collapse from "./Collapse";
 import { ScaleIcon, EditIcon } from "./Icons";
 
 export default function BodyWeightSection() {
+  const sectionRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [fatInput, setFatInput] = useState("");
@@ -59,9 +60,9 @@ export default function BodyWeightSection() {
   const latest = logs.length > 0 ? logs[logs.length - 1] : null;
 
   return (
-    <div className="mb-4">
+    <div ref={sectionRef} className="mb-4">
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) scrollSectionToCenter(sectionRef); return !o; })}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">

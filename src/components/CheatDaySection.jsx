@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCheatDays } from "../hooks/useCheatDays";
+import { scrollSectionToCenter } from "../lib/utils";
 import Collapse from "./Collapse";
 import {
   DevilIcon,
@@ -93,6 +94,7 @@ function pickRoast(selected) {
 }
 
 export default function CheatDaySection() {
+  const sectionRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [confessed, setConfessed] = useState(new Set()); // saved to Supabase
   const [selected, setSelected] = useState(new Set());   // pending confession
@@ -142,9 +144,9 @@ export default function CheatDaySection() {
   const totalConfessed = confessed.size;
 
   return (
-    <div className="mb-4">
+    <div ref={sectionRef} className="mb-4">
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) scrollSectionToCenter(sectionRef); return !o; })}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">

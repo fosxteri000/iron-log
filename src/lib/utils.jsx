@@ -56,6 +56,23 @@ export function filterCurrentWeek(logs) {
 }
 
 /**
+ * Scroll a section into the vertical centre of the viewport.
+ * Call when a section expands; delay matches the Collapse animation (≈300ms).
+ */
+export function scrollSectionToCenter(ref) {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      const offset = window.scrollY + center - window.innerHeight / 2;
+      window.scrollTo({ top: Math.max(0, offset), behavior: "smooth" });
+    }, 320);
+  });
+}
+
+/**
  * Progressive overload suggestion based on category and last session best set.
  * Push/Pull: +2.5kg same reps. Leg: +5kg same reps.
  * If reps < 6 (low range), keep weight but suggest +1 rep.

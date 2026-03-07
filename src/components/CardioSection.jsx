@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useCardio } from "../hooks/useExercises";
-import { formatDate } from "../lib/utils";
+import { formatDate, scrollSectionToCenter } from "../lib/utils";
 import Collapse from "./Collapse";
 import LineChart from "./LineChart";
 import { HeartPulseIcon, CARDIO_TYPE_ICONS, CARDIO_TYPES, EditIcon } from "./Icons";
@@ -32,6 +32,7 @@ function LevelPicker({ label, value, onChange }) {
 const emptyForm = { type: "Run", custom_type: "", duration_minutes: "", distance_km: "", calories: "", incline_level: "", speed_level: "" };
 
 export default function CardioSection() {
+  const sectionRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -89,9 +90,9 @@ export default function CardioSection() {
   };
 
   return (
-    <div className="mb-4">
+    <div ref={sectionRef} className="mb-4">
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) scrollSectionToCenter(sectionRef); return !o; })}
         className="w-full flex items-center justify-between py-4 border-b border-black active:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">
