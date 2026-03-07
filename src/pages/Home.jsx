@@ -8,6 +8,8 @@ import CategorySection from "../components/CategorySection";
 import CardioSection from "../components/CardioSection";
 import BodyWeightSection from "../components/BodyWeightSection";
 import CheatDaySection from "../components/CheatDaySection";
+import FoodSection from "../components/FoodSection";
+import SleepSection from "../components/SleepSection";
 import { DumbbellIcon } from "../components/Icons";
 
 const NAME_FORMATS = [
@@ -152,8 +154,18 @@ export default function Home() {
         <CardioSection />
       </div>
 
-      {/* Cheat Day — third tracking type, after Cardio */}
+      {/* Food */}
       <div className="stagger-item" style={{ "--i": sections.length + 1 }}>
+        <FoodSection />
+      </div>
+
+      {/* Sleep */}
+      <div className="stagger-item" style={{ "--i": sections.length + 2 }}>
+        <SleepSection />
+      </div>
+
+      {/* Cheat Day */}
+      <div className="stagger-item" style={{ "--i": sections.length + 3 }}>
         <CheatDaySection />
       </div>
     </div>

@@ -2,12 +2,16 @@ import React, { useMemo, useState } from "react";
 import { useProgressData } from "../hooks/useExercises";
 import { useCheatDays } from "../hooks/useCheatDays";
 import { useProfile } from "../hooks/useProfile";
+import { useFoodLogs } from "../hooks/useFoodLog";
+import { useSleepLogs } from "../hooks/useSleepLog";
 import { formatFullDate, getStartOfWeek } from "../lib/utils";
 import {
   getWeekSummary, getCurrentStreak, getBalanceData,
   getSplitBreakdown, getWeeklySessions, getVolumeTrend, getBestSession,
 } from "../lib/statsQueries";
 import { getDonutMessage, getBarMessage, getVolumeMessage } from "../lib/statsInsights";
+import { getFoodWeekStats } from "../lib/foodStats";
+import { getSleepWeekStats } from "../lib/sleepStats";
 import { TrophyIcon } from "../components/Icons";
 import SummaryCard from "../components/SummaryCard";
 import InsightStrip from "../components/InsightStrip";
@@ -19,6 +23,8 @@ export default function Progress() {
   const { workoutLogs, cardioLogs, loading } = useProgressData();
   const { cheatDays } = useCheatDays();
   const { profile } = useProfile();
+  const { foodLogs } = useFoodLogs();
+  const { sleepLogs } = useSleepLogs();
   const [volumeMode, setVolumeMode] = useState("weekly");
 
   const userName = profile?.name?.toUpperCase() || "YOU";
@@ -91,6 +97,10 @@ export default function Progress() {
     [volumeTrend, userName, volumeMode]
   );
 
+  // Section 2b: Food + Sleep insight cards
+  const foodStats = useMemo(() => getFoodWeekStats(foodLogs), [foodLogs]);
+  const sleepStats = useMemo(() => getSleepWeekStats(sleepLogs), [sleepLogs]);
+
   // Section 6: Best lifts (last 30 days, grouped by category)
   const bestLiftsByCategory = useMemo(() => {
     const cutoff = new Date();
@@ -132,7 +142,13 @@ export default function Progress() {
       <SummaryCard thisWeek={thisWeek} lastWeek={lastWeek} weekRange={weekRange} />
 
       {/* 2. Insight Strip */}
-      <InsightStrip consistency={consistency} balance={balance} bestSession={bestSession} />
+      <InsightStrip
+        consistency={consistency}
+        balance={balance}
+        bestSession={bestSession}
+        food={foodStats}
+        sleep={sleepStats}
+      />
 
       {/* 3. Donut — Training Split Breakdown */}
       <div className="mb-6">

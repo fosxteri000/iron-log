@@ -588,6 +588,34 @@ export function SplitDaySplitIcon({ size = 48, className = "" }) {
   );
 }
 
+export function ForkKnifeIcon({ size = 16, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 2v7c0 1.1.9 2 2 2h1v11h2V11h1a2 2 0 0 0 2-2V2" />
+      <line x1="5" y1="2" x2="5" y2="7" />
+      <line x1="8" y1="2" x2="8" y2="7" />
+      <path d="M17 2v20M17 2c2 0 4 2 4 5s-2 5-4 5" />
+    </svg>
+  );
+}
+
+export function MoonIcon({ size = 16, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+export function EditIcon({ size = 14, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+  );
+}
+
 export const SPLIT_ICONS = {
   PPL:          SplitPPLIcon,
   "Upper/Lower": SplitUpperLowerIcon,

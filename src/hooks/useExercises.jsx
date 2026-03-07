@@ -78,7 +78,7 @@ export function useExerciseHistory(exerciseId) {
       data.forEach(s => {
         const date = s.workout_sessions?.date || s.created_at?.split("T")[0];
         if (!grouped[date]) grouped[date] = { id: s.id, date, sets: [] };
-        grouped[date].sets.push({ weight: s.weight_kg, reps: s.reps });
+        grouped[date].sets.push({ id: s.id, weight: s.weight_kg, reps: s.reps });
       });
       setHistory(
         Object.values(grouped).sort((a, b) => b.date.localeCompare(a.date))
@@ -134,7 +134,18 @@ export function useExerciseHistory(exerciseId) {
     return { error };
   }, [exerciseId, userId, fetchHistory]);
 
-  return { history, loading, logSets, refetch: fetchHistory };
+  const updateSet = useCallback(async (setId, { weight_kg, reps }) => {
+    if (!userId) return { error: "Not authenticated" };
+    const { error } = await supabase
+      .from("workout_sets")
+      .update({ weight_kg: parseFloat(weight_kg), reps: parseInt(reps) })
+      .eq("id", setId)
+      .eq("user_id", userId);
+    if (!error) fetchHistory();
+    return { error };
+  }, [userId, fetchHistory]);
+
+  return { history, loading, logSets, updateSet, refetch: fetchHistory };
 }
 
 // ── Week Sets (done indicators) ──────────────────────────────
@@ -250,7 +261,18 @@ export function useCardio() {
     return { error };
   }, [userId]);
 
-  return { sessions, logCardio };
+  const updateCardio = useCallback(async (id, data) => {
+    if (!userId) return { error: "Not authenticated" };
+    const { error } = await supabase
+      .from("cardio_sessions")
+      .update(data)
+      .eq("id", id)
+      .eq("user_id", userId);
+    if (!error) setSessions(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+    return { error };
+  }, [userId]);
+
+  return { sessions, logCardio, updateCardio };
 }
 
 // ── Body Weight ──────────────────────────────────────────────
@@ -301,5 +323,16 @@ export function useBodyWeight() {
     setLogs(data || []);
   }, [userId]);
 
-  return { logs, logWeight };
+  const updateWeight = useCallback(async (id, data) => {
+    if (!userId) return { error: "Not authenticated" };
+    const { error } = await supabase
+      .from("body_weight_logs")
+      .update(data)
+      .eq("id", id)
+      .eq("user_id", userId);
+    if (!error) setLogs(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
+    return { error };
+  }, [userId]);
+
+  return { logs, logWeight, updateWeight };
 }

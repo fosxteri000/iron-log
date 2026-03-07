@@ -11,7 +11,7 @@ function getBalanceVerdict(balance) {
   return `${weakest} day calling 👀`;
 }
 
-export default function InsightStrip({ consistency, balance, bestSession }) {
+export default function InsightStrip({ consistency, balance, bestSession, food, sleep }) {
   return (
     <div
       className="flex gap-3 overflow-x-auto pb-2 mb-6"
@@ -51,6 +51,53 @@ export default function InsightStrip({ consistency, balance, bestSession }) {
             <span className="font-bold">{formatDate(bestSession.date)}</span> — {bestSession.volume.toLocaleString()} kg
           </p>
           <p className="text-[10px] text-gray-400">Your strongest session this month</p>
+        </div>
+      )}
+
+      {/* Food — This Week */}
+      {food && (
+        <div className="min-w-[160px] border border-gray-200 p-3 flex-shrink-0">
+          <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 mb-2">NUTRITION (THIS WEEK)</p>
+          <p className="text-xs leading-relaxed mb-1">
+            <span className="font-bold">{food.meals}</span> meal{food.meals !== 1 ? "s" : ""} logged
+          </p>
+          {food.avgCalories && (
+            <p className="text-[10px] text-gray-400">Avg ~{food.avgCalories} kcal/meal</p>
+          )}
+          {food.avgProtein && (
+            <p className="text-[10px] text-gray-400">Protein avg {food.avgProtein}g 💪</p>
+          )}
+          {food.qualityBreakdown && (
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              {food.qualityBreakdown.clean > 0 && `Clean ${food.qualityBreakdown.clean}%`}
+              {food.qualityBreakdown.mixed > 0 && ` · Mixed ${food.qualityBreakdown.mixed}%`}
+              {food.qualityBreakdown.junk > 0 && ` · Junk ${food.qualityBreakdown.junk}%`}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Sleep — This Week */}
+      {sleep && (
+        <div className="min-w-[160px] border border-gray-200 p-3 flex-shrink-0">
+          <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 mb-2">SLEEP (THIS WEEK)</p>
+          {sleep.avgHours != null && (
+            <p className="text-xs leading-relaxed mb-1">
+              Avg <span className="font-bold">{sleep.avgHours}h</span> per night
+            </p>
+          )}
+          {sleep.qualityLabel && (
+            <p className="text-[10px] text-gray-400">
+              Quality: {sleep.qualityLabel}{sleep.qualityTrend ? ` ${sleep.qualityTrend}` : ""}
+            </p>
+          )}
+          {sleep.bestNight && (
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              Best: {sleep.bestNight.duration_hours}h
+              {sleep.bestNight.quality && ` · ${sleep.bestNight.quality.charAt(0).toUpperCase() + sleep.bestNight.quality.slice(1)}`}
+              {` (${formatDate(sleep.bestNight.date)})`}
+            </p>
+          )}
         </div>
       )}
     </div>

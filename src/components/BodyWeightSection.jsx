@@ -3,14 +3,18 @@ import { useBodyWeight } from "../hooks/useExercises";
 import { formatDate } from "../lib/utils";
 import LineChart from "./LineChart";
 import Collapse from "./Collapse";
-import { ScaleIcon } from "./Icons";
+import { ScaleIcon, EditIcon } from "./Icons";
 
 export default function BodyWeightSection() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [fatInput, setFatInput] = useState("");
   const [saved, setSaved] = useState(false);
-  const { logs, logWeight } = useBodyWeight();
+  const [editingId, setEditingId] = useState(null);
+  const [editWeight, setEditWeight] = useState("");
+  const [editFat, setEditFat] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const { logs, logWeight, updateWeight } = useBodyWeight();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,6 +24,23 @@ export default function BodyWeightSection() {
     setFatInput("");
     setSaved(true);
     setTimeout(() => setSaved(false), 1200);
+  };
+
+  const startEdit = (l) => {
+    setEditingId(l.id);
+    setEditWeight(String(l.weight_kg));
+    setEditFat(l.body_fat_percent != null ? String(l.body_fat_percent) : "");
+  };
+
+  const handleEditSave = async () => {
+    if (!editWeight) return;
+    setEditSaving(true);
+    const payload = { weight_kg: parseFloat(editWeight) };
+    if (editFat !== "") payload.body_fat_percent = parseFloat(editFat);
+    else payload.body_fat_percent = null;
+    await updateWeight(editingId, payload);
+    setEditSaving(false);
+    setEditingId(null);
   };
 
   const chartData = logs.slice(-14).map(l => ({
@@ -108,17 +129,79 @@ export default function BodyWeightSection() {
             </div>
           )}
 
-          {logs.slice(-7).reverse().map(l => (
-            <div key={l.id} className="flex justify-between py-2 border-b border-gray-100 text-sm">
-              <span className="text-[10px] text-gray-400 tracking-widest">{formatDate(l.date)}</span>
-              <div className="flex gap-3">
-                <span className="font-bold">{l.weight_kg} kg</span>
-                {l.body_fat_percent != null && (
-                  <span className="text-gray-400 text-[10px]">{l.body_fat_percent}%</span>
-                )}
+          {logs.slice(-7).reverse().map(l => {
+            const isEditing = editingId === l.id;
+            return (
+              <div key={l.id}>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100 text-sm">
+                  <span className="text-[10px] text-gray-400 tracking-widest">{formatDate(l.date)}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-3">
+                      <span className="font-bold">{l.weight_kg} kg</span>
+                      {l.body_fat_percent != null && (
+                        <span className="text-gray-400 text-[10px]">{l.body_fat_percent}%</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => isEditing ? setEditingId(null) : startEdit(l)}
+                      className="text-gray-300 active:text-black transition-colors p-1"
+                      aria-label="Edit weight log"
+                    >
+                      <EditIcon size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <Collapse open={isEditing}>
+                  <div className="px-2 py-2 bg-gray-50 border-b border-gray-100 fade-in">
+                    <div className="flex gap-3 mb-2">
+                      <div className="flex-1">
+                        <label className="text-[10px] tracking-widest text-gray-400 block mb-1">KG</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.1"
+                          value={editWeight}
+                          onChange={e => setEditWeight(e.target.value)}
+                          className="w-full border-b border-black py-1.5 text-sm focus:outline-none bg-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[10px] tracking-widest text-gray-400 block mb-1">FAT %</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.1"
+                          value={editFat}
+                          onChange={e => setEditFat(e.target.value)}
+                          placeholder="optional"
+                          className="w-full border-b border-gray-300 py-1.5 text-sm focus:outline-none bg-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="flex-1 py-1.5 border border-black text-[10px] tracking-widest active:bg-gray-100 transition-colors"
+                      >
+                        CANCEL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleEditSave}
+                        disabled={editSaving || !editWeight}
+                        className="flex-1 py-1.5 bg-black text-white text-[10px] tracking-widest disabled:opacity-50"
+                      >
+                        {editSaving ? "SAVING..." : "SAVE"}
+                      </button>
+                    </div>
+                  </div>
+                </Collapse>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Collapse>
     </div>

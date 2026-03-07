@@ -1,15 +1,20 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useExercises, useExerciseHistory } from "../hooks/useExercises";
 import { formatDate } from "../lib/utils";
 import LineChart from "../components/LineChart";
-import { TrophyIcon } from "../components/Icons";
+import { TrophyIcon, EditIcon } from "../components/Icons";
 
 export default function ExerciseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { exercises } = useExercises();
-  const { history } = useExerciseHistory(id);
+  const { history, updateSet } = useExerciseHistory(id);
+
+  const [editingSetId, setEditingSetId] = useState(null);
+  const [editWeight, setEditWeight] = useState("");
+  const [editReps, setEditReps] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   const exercise = exercises.find(ex => ex.id === id);
 
@@ -33,7 +38,6 @@ export default function ExerciseDetail() {
       }));
   }, [history]);
 
-  // Personal bests
   const personalBests = useMemo(() => {
     const bests = {};
     history.forEach(log => {
@@ -50,6 +54,20 @@ export default function ExerciseDetail() {
     return bests;
   }, [history]);
 
+  const startEditSet = (s) => {
+    setEditingSetId(s.id);
+    setEditWeight(String(s.weight));
+    setEditReps(String(s.reps));
+  };
+
+  const handleEditSetSave = async () => {
+    if (!editWeight || !editReps) return;
+    setEditSaving(true);
+    await updateSet(editingSetId, { weight_kg: editWeight, reps: editReps });
+    setEditSaving(false);
+    setEditingSetId(null);
+  };
+
   if (!exercise) {
     return (
       <div className="text-center py-20 text-[10px] tracking-widest text-gray-400">
@@ -60,7 +78,6 @@ export default function ExerciseDetail() {
 
   return (
     <div className="fade-in">
-      {/* Back */}
       <button
         onClick={() => navigate(-1)}
         className="text-[10px] tracking-widest text-gray-400 active:text-black mb-6 flex items-center gap-2 py-2"
@@ -68,13 +85,11 @@ export default function ExerciseDetail() {
         ← BACK
       </button>
 
-      {/* Title */}
       <div className="mb-6">
         <p className="text-[10px] tracking-[0.3em] text-gray-400 mb-1">{exercise.category.toUpperCase()}</p>
         <h2 className="text-xl font-bold tracking-wide">{exercise.name.toUpperCase()}</h2>
       </div>
 
-      {/* Charts */}
       {volumeChartData.length >= 2 && (
         <div className="mb-4">
           <p className="text-[10px] tracking-[0.3em] text-gray-400 mb-2">VOLUME TREND</p>
@@ -93,7 +108,6 @@ export default function ExerciseDetail() {
         </div>
       )}
 
-      {/* Personal Bests */}
       {(personalBests.maxWeight || personalBests.maxVolume) && (
         <div className="mb-6 border border-black p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -119,7 +133,6 @@ export default function ExerciseDetail() {
         </div>
       )}
 
-      {/* History */}
       <div>
         <p className="text-[10px] tracking-[0.3em] text-gray-400 mb-3">HISTORY</p>
         {history.length === 0 ? (
@@ -129,13 +142,66 @@ export default function ExerciseDetail() {
             <div key={log.id} className="mb-4 border-b border-gray-100 pb-3 stagger-item" style={{ "--i": i }}>
               <p className="text-[10px] text-gray-400 tracking-widest mb-2">{formatDate(log.date)}</p>
               <div className="flex flex-wrap gap-2">
-                {log.sets.map((s, j) => (
-                  <div key={j} className="border border-gray-200 px-2.5 py-1.5">
-                    <span className="text-sm font-bold">{s.weight}</span>
-                    <span className="text-[10px] text-gray-400"> kg × </span>
-                    <span className="text-sm font-bold">{s.reps}</span>
-                  </div>
-                ))}
+                {log.sets.map((s, j) => {
+                  const isEditingThis = editingSetId === s.id;
+                  return (
+                    <div key={s.id || j}>
+                      {isEditingThis ? (
+                        <div className="border border-black p-2 flex items-center gap-2 fade-in">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.5"
+                            value={editWeight}
+                            onChange={e => setEditWeight(e.target.value)}
+                            className="w-14 border-b border-black py-0.5 text-sm text-center focus:outline-none bg-transparent"
+                            placeholder="kg"
+                          />
+                          <span className="text-[10px] text-gray-400">×</span>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            value={editReps}
+                            onChange={e => setEditReps(e.target.value)}
+                            className="w-10 border-b border-black py-0.5 text-sm text-center focus:outline-none bg-transparent"
+                            placeholder="reps"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleEditSetSave}
+                            disabled={editSaving}
+                            className="text-[10px] tracking-widest bg-black text-white px-2 py-1 disabled:opacity-50"
+                          >
+                            {editSaving ? "..." : "✓"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingSetId(null)}
+                            className="text-[10px] tracking-widest border border-gray-300 px-2 py-1 active:bg-gray-100"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="border border-gray-200 px-2.5 py-1.5 flex items-center gap-2">
+                          <span className="text-sm font-bold">{s.weight}</span>
+                          <span className="text-[10px] text-gray-400"> kg × </span>
+                          <span className="text-sm font-bold">{s.reps}</span>
+                          {s.id && (
+                            <button
+                              type="button"
+                              onClick={() => startEditSet(s)}
+                              className="text-gray-300 active:text-black transition-colors ml-0.5"
+                              aria-label="Edit set"
+                            >
+                              <EditIcon size={12} />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))
