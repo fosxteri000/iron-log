@@ -88,7 +88,6 @@ export default function Home() {
   const { exercises, loading } = useExercises();
   const { profile } = useProfile();
   const doneIds = useWeekSets();
-  const weekNum = getWeekNumber();
 
   // Determine sections to show based on split
   const sections = useMemo(() => {
