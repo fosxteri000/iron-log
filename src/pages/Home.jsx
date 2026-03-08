@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useExercises, useWeekSets } from "../hooks/useExercises";
 import { useProfile } from "../hooks/useProfile";
-import { getWeekNumber } from "../lib/utils";
 import { MOTIVATIONAL_PHRASES } from "../lib/seedData";
 import { SPLIT_TYPES, DAY_NAMES } from "../lib/splitConfig";
 import CategorySection from "../components/CategorySection";
@@ -25,7 +24,9 @@ function RotatingHeader({ name }) {
   const [msgClass, setMsgClass] = useState("");
   const [iconPaused, setIconPaused] = useState(false);
   const [displayMsg, setDisplayMsg] = useState("");
-  const timerRef = useRef(null);
+  const timerRef  = useRef(null);
+  const t1Ref     = useRef(null);
+  const t2Ref     = useRef(null);
 
   // Build initial message
   useEffect(() => {
@@ -34,12 +35,10 @@ function RotatingHeader({ name }) {
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      // Phase B: icon freezes, text fades out
       setIconPaused(true);
       setMsgClass("msg-out");
 
-      setTimeout(() => {
-        // Phase C: new text fades in, icon restarts
+      t1Ref.current = setTimeout(() => {
         const newIdx = (index + 1) % MOTIVATIONAL_PHRASES.length;
         const newFmt = Math.floor(Math.random() * NAME_FORMATS.length);
         setIndex(newIdx);
@@ -49,12 +48,16 @@ function RotatingHeader({ name }) {
         setIconPaused(false);
       }, 400);
 
-      setTimeout(() => {
+      t2Ref.current = setTimeout(() => {
         setMsgClass("");
       }, 800);
-    }, 3300); // 2.5s visible + 0.4s out + 0.4s in
+    }, 3300);
 
-    return () => clearInterval(timerRef.current);
+    return () => {
+      clearInterval(timerRef.current);
+      clearTimeout(t1Ref.current);
+      clearTimeout(t2Ref.current);
+    };
   }, [index, name]);
 
   return (
@@ -118,6 +121,13 @@ export default function Home() {
     }));
   }, [profile, exercises]);
 
+  // All exercises in all sections are checked off for this week
+  const allDoneThisWeek = useMemo(() => {
+    const exerciseSections = sections.filter(s => s.exercises.length > 0);
+    if (!exerciseSections.length) return false;
+    return exerciseSections.every(s => s.exercises.every(ex => doneIds.has(ex.id)));
+  }, [sections, doneIds]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-[10px] tracking-[0.3em] text-gray-300">
@@ -132,8 +142,15 @@ export default function Home() {
       <div className="mb-8 text-center">
         <RotatingHeader name={profile?.name?.toUpperCase() || ""} />
         <p className="text-[13px] text-gray-400 mt-1 font-normal tracking-[0.02em] font-sans">{formatHomeDate()}</p>
-        <p className="text-[10px] tracking-[0.3em] text-gray-400 mt-1">WEEK {weekNum} OF 52</p>
       </div>
+
+      {/* All-done banner — shown when every exercise in every section is logged this week */}
+      {allDoneThisWeek && (
+        <div className="mb-6 border border-black p-4 text-center fade-in">
+          <p className="text-xs font-bold tracking-[0.3em] mb-1">ALL DONE THIS WEEK ✓</p>
+          <p className="text-[11px] text-gray-400 tracking-wide">Every session logged. Keep the streak going.</p>
+        </div>
+      )}
 
       {/* Body Weight */}
       <BodyWeightSection />

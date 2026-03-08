@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useSleepLog } from "../hooks/useSleepLog";
-import { scrollSectionToCenter } from "../lib/utils";
+import { scrollSectionToCenter, capitalize } from "../lib/utils";
 import Collapse from "./Collapse";
 import DrumPicker from "./DrumPicker";
 import { MoonIcon, EditIcon } from "./Icons";
@@ -24,14 +24,10 @@ const DEFAULT_QUAL = "ok";
 
 // ─── Helpers ──────────────────────────────────────────────────
 
-function cap(str) {
-  return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
-}
-
 function buildSummary(log) {
   const parts = [];
   if (log.duration_hours != null) parts.push(`${log.duration_hours}h`);
-  if (log.quality)                parts.push(cap(log.quality));
+  if (log.quality)                parts.push(capitalize(log.quality));
   return parts.join(" · ") || "Logged";
 }
 

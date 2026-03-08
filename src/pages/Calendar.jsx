@@ -102,14 +102,16 @@ export default function Calendar() {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={prevMonth}
-          className="text-xs tracking-widest text-gray-400 active:text-black px-2 py-2"
+          className="text-base text-gray-400 active:text-black px-4 py-3 -ml-4"
+          aria-label="Previous month"
         >
           ←
         </button>
         <span className="text-xs font-bold tracking-[0.25em]">{monthName}</span>
         <button
           onClick={nextMonth}
-          className="text-xs tracking-widest text-gray-400 active:text-black px-2 py-2"
+          className="text-base text-gray-400 active:text-black px-4 py-3 -mr-4"
+          aria-label="Next month"
         >
           →
         </button>
@@ -166,9 +168,9 @@ export default function Calendar() {
                 {day}
               </span>
 
-              {/* Past day with no activity: show × */}
+              {/* Past day with no activity: neutral dot */}
               {noActivity && !isSelected && (
-                <span className="text-[8px] text-gray-300 leading-none">×</span>
+                <span className="text-[8px] text-gray-200 leading-none">·</span>
               )}
 
               {/* Activity icons + cheat marker */}
@@ -217,7 +219,7 @@ export default function Calendar() {
         </div>
         <span className="text-[9px] tracking-widest text-gray-400">+ UP</span>
         <span className="text-[9px] tracking-widest text-gray-400">− DOWN</span>
-        <span className="text-[9px] tracking-widest text-gray-400">× REST</span>
+        <span className="text-[9px] tracking-widest text-gray-400">· REST</span>
       </div>
 
       {/* Selected day detail */}

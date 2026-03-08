@@ -156,13 +156,21 @@ export function useWeekSets() {
   useEffect(() => {
     if (!userId) return;
     (async () => {
-      const startOfWeek = getStartOfWeek().toISOString().split("T")[0];
+      const startOfWeekStr = getStartOfWeek().toISOString().split("T")[0];
+      // Fetch with created_at for index performance, then cross-check session date
+      // to handle edge cases (e.g. sets created near midnight UTC vs local date)
       const { data } = await supabase
         .from("workout_sets")
-        .select("exercise_id")
+        .select("exercise_id, workout_sessions(date)")
         .eq("user_id", userId)
-        .gte("created_at", startOfWeek);
-      if (data) setDoneIds(new Set(data.map(s => s.exercise_id)));
+        .gte("created_at", startOfWeekStr);
+      if (data) {
+        setDoneIds(new Set(
+          data
+            .filter(s => (s.workout_sessions?.date ?? "") >= startOfWeekStr)
+            .map(s => s.exercise_id)
+        ));
+      }
     })();
   }, [userId]);
 
@@ -180,10 +188,16 @@ export function useProgressData() {
     if (!userId) return;
     (async () => {
       setLoading(true);
+      // Limit to last 6 months to prevent unbounded growth of the fetched payload
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const cutoff = sixMonthsAgo.toISOString().split("T")[0];
+
       const { data: sets } = await supabase
         .from("workout_sets")
         .select("*, exercises(name, category), workout_sessions(date)")
         .eq("user_id", userId)
+        .gte("created_at", cutoff)
         .order("created_at", { ascending: false });
 
       if (sets) {
@@ -310,17 +324,21 @@ export function useBodyWeight() {
     }
 
     if (existing) {
-      await supabase.from("body_weight_logs").update(payload).eq("id", existing.id);
+      const { data } = await supabase
+        .from("body_weight_logs")
+        .update(payload)
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (data) setLogs(prev => prev.map(l => l.id === existing.id ? { ...l, ...data } : l));
     } else {
-      await supabase.from("body_weight_logs").insert({ date: today, user_id: userId, ...payload });
+      const { data } = await supabase
+        .from("body_weight_logs")
+        .insert({ date: today, user_id: userId, ...payload })
+        .select()
+        .single();
+      if (data) setLogs(prev => [...prev, data]);
     }
-
-    const { data } = await supabase
-      .from("body_weight_logs")
-      .select("*")
-      .eq("user_id", userId)
-      .order("date", { ascending: true });
-    setLogs(data || []);
   }, [userId]);
 
   const updateWeight = useCallback(async (id, data) => {

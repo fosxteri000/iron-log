@@ -47,11 +47,12 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
   const { history, logSets } = useExerciseHistory(exerciseId);
 
   const [targetWeight, setTargetWeight] = useState("");
-  const [targetReps, setTargetReps] = useState("");
-  const [sets, setSets] = useState([{ weight: "", reps: "" }]);
-  const [showSets, setShowSets] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [savedMsg, setSavedMsg] = useState("");
+  const [targetReps, setTargetReps]     = useState("");
+  const [sets, setSets]                 = useState([{ weight: "", reps: "" }]);
+  const [showSets, setShowSets]         = useState(false);
+  const [saving, setSaving]             = useState(false);
+  const [savedMsg, setSavedMsg]         = useState("");
+  const [saveError, setSaveError]       = useState("");
   const [selectedPill, setSelectedPill] = useState(null);
 
   const lastSession = history[0] || null;
@@ -91,6 +92,7 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setSaveError("");
     const { error } = await logSets(sets, targetWeight, targetReps);
     setSaving(false);
     if (!error) {
@@ -99,19 +101,21 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
         setSavedMsg("");
         onSaved();
       }, 1400);
+    } else {
+      setSaveError("Failed to save. Check your connection and try again.");
     }
   };
 
   if (savedMsg) {
     return (
-      <div className="p-4 border-t border-gray-100 bg-gray-50 fade-in">
+      <div className="p-4 border-t border-gray-100 fade-in">
         <p className="text-xs tracking-wide leading-relaxed font-mono text-center pulse-glow py-2">{savedMsg}</p>
       </div>
     );
   }
 
   return (
-    <div className="border-t border-gray-100 bg-gray-50 px-4 pt-4 pb-3">
+    <div className="border-t border-gray-100 px-4 pt-4 pb-3">
 
       {/* Last session */}
       {lastBest ? (
@@ -176,33 +180,6 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
         <p className="text-xs tracking-wide text-gray-400 mb-3">First session — set your baseline 🎯</p>
       )}
 
-      {/* Target inputs */}
-      <div className="grid grid-cols-2 gap-4 mb-3">
-        <div>
-          <label className="text-[10px] tracking-widest text-gray-400 block mb-1">TARGET KG</label>
-          <input
-            type="number"
-            inputMode="decimal"
-            step="0.5"
-            value={targetWeight}
-            onChange={e => setTargetWeight(e.target.value)}
-            placeholder={overloadA?.weight || lastBest?.weight || "0"}
-            className="w-full border-b border-black py-1.5 text-base focus:outline-none bg-transparent"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] tracking-widest text-gray-400 block mb-1">TARGET REPS</label>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={targetReps}
-            onChange={e => setTargetReps(e.target.value)}
-            placeholder={overloadA?.reps || lastBest?.reps || "0"}
-            className="w-full border-b border-black py-1.5 text-base focus:outline-none bg-transparent"
-          />
-        </div>
-      </div>
-
       {/* Log sets toggle */}
       <button
         type="button"
@@ -235,6 +212,9 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
           >
             + ADD SET
           </button>
+          {saveError && (
+            <p className="text-[10px] text-red-500 text-center mb-2 tracking-wide">{saveError}</p>
+          )}
           <button
             type="submit"
             disabled={saving}

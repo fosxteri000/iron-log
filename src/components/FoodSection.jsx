@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useFoodLog } from "../hooks/useFoodLog";
-import { scrollSectionToCenter } from "../lib/utils";
+import { scrollSectionToCenter, capitalize } from "../lib/utils";
 import Collapse from "./Collapse";
 import FoodLogSteps from "./FoodLogSteps";
 import { ForkKnifeIcon, EditIcon } from "./Icons";
@@ -25,12 +25,8 @@ const QUALITY_ICONS = {
   junk:  JunkFoodIcon,
 };
 
-function cap(str) {
-  return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
-}
-
 function buildSummary(meal) {
-  const parts = [cap(meal.meal_type)];
+  const parts = [capitalize(meal.meal_type)];
   if (meal.calories  != null) parts.push(`${meal.calories} kcal`);
   if (meal.protein_g != null) parts.push(`${meal.protein_g}g P`);
   if (meal.carbs_g   != null) parts.push(`${meal.carbs_g}g C`);
@@ -82,13 +78,15 @@ export default function FoodSection() {
       <Collapse open={open}>
         <div className="pt-2 pb-2">
 
-          {/* + LOG FOOD button — same style as + LOG CARDIO */}
-          <button
-            onClick={openNew}
-            className="w-full py-3.5 border border-black text-xs tracking-widest active:bg-black active:text-white transition-colors mb-3"
-          >
-            + LOG FOOD
-          </button>
+          {/* + LOG FOOD button — hidden while form is open (matches SleepSection pattern) */}
+          {!formOpen && (
+            <button
+              onClick={openNew}
+              className="w-full py-3.5 border border-black text-xs tracking-widest active:bg-black active:text-white transition-colors mb-3"
+            >
+              + LOG FOOD
+            </button>
+          )}
 
           {/* Multi-step form expands inline — identical to Cardio log form Collapse */}
           <Collapse open={formOpen}>
@@ -119,7 +117,7 @@ export default function FoodSection() {
                       <div className="flex items-center gap-1 mt-0.5">
                         <QualIcon size={10} className="text-gray-300" />
                         <span className="text-[10px] text-gray-400 tracking-wide">
-                          {cap(meal.quality)}
+                          {capitalize(meal.quality)}
                         </span>
                       </div>
                     )}

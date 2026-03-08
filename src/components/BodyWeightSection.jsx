@@ -8,6 +8,7 @@ import { ScaleIcon, EditIcon } from "./Icons";
 export default function BodyWeightSection() {
   const sectionRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [input, setInput] = useState("");
   const [fatInput, setFatInput] = useState("");
   const [saved, setSaved] = useState(false);
@@ -81,20 +82,23 @@ export default function BodyWeightSection() {
       <Collapse open={open}>
         <div className="pt-3 pb-2">
           <form onSubmit={handleSubmit} className="mb-4">
-            <div className="flex gap-3 items-end mb-2">
-              <div className="flex-1">
-                <label className="text-[10px] tracking-widest text-gray-400 block mb-1">TODAY (KG)</label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  placeholder={latest ? String(latest.weight_kg) : "70.0"}
-                  className="w-full border-b border-black py-2 text-base focus:outline-none bg-transparent"
-                />
-              </div>
-              <div className="flex-1">
+            {/* Primary: weight only */}
+            <div className="mb-2">
+              <label className="text-[10px] tracking-widest text-gray-400 block mb-1">TODAY (KG)</label>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder={latest ? String(latest.weight_kg) : "70.0"}
+                className="w-full border-b border-black py-2 text-base focus:outline-none bg-transparent"
+              />
+            </div>
+
+            {/* Advanced: body fat — collapsed by default */}
+            <Collapse open={showAdvanced}>
+              <div className="mb-2 pt-1">
                 <label className="text-[10px] tracking-widest text-gray-400 block mb-1">BODY FAT %</label>
                 <input
                   type="number"
@@ -106,11 +110,22 @@ export default function BodyWeightSection() {
                   className="w-full border-b border-gray-300 py-2 text-base focus:outline-none focus:border-black bg-transparent"
                 />
               </div>
+            </Collapse>
+
+            <div className="flex items-center justify-between mb-3">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(a => !a)}
+                className="text-[10px] tracking-widest text-gray-400 active:text-black transition-colors"
+              >
+                {showAdvanced ? "HIDE BODY FAT" : "+ BODY FAT %"}
+              </button>
             </div>
+
             <button
               type="submit"
               disabled={saved || !input}
-              className={`w-full py-2.5 bg-black text-white text-xs tracking-widest disabled:opacity-50 ${saved ? "pulse-glow" : ""}`}
+              className={`w-full py-3 bg-black text-white text-xs tracking-widest disabled:opacity-50 ${saved ? "pulse-glow" : ""}`}
             >
               {saved ? "SAVED" : "LOG"}
             </button>

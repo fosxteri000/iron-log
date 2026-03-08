@@ -262,12 +262,16 @@ export default function Settings() {
 
   const handleReset = async () => {
     setResetting(true);
-    await supabase.from("workout_sets").delete().eq("user_id", userId);
-    await supabase.from("workout_sessions").delete().eq("user_id", userId);
-    await supabase.from("cardio_sessions").delete().eq("user_id", userId);
-    await supabase.from("body_weight_logs").delete().eq("user_id", userId);
-    await supabase.from("cheat_days").delete().eq("user_id", userId);
-    await supabase.from("exercises").delete().eq("user_id", userId);
+    await Promise.all([
+      supabase.from("workout_sets").delete().eq("user_id", userId),
+      supabase.from("workout_sessions").delete().eq("user_id", userId),
+      supabase.from("cardio_sessions").delete().eq("user_id", userId),
+      supabase.from("body_weight_logs").delete().eq("user_id", userId),
+      supabase.from("food_logs").delete().eq("user_id", userId),
+      supabase.from("sleep_logs").delete().eq("user_id", userId),
+      supabase.from("cheat_days").delete().eq("user_id", userId),
+      supabase.from("exercises").delete().eq("user_id", userId),
+    ]);
     resetProfile();
     lock();
     navigate("/login");

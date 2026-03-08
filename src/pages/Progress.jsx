@@ -157,12 +157,25 @@ export default function Progress() {
     );
   }
 
+  const hasAnyData = workoutLogs.length > 0 || cardioLogs.length > 0;
+
   return (
     <div className="fade-in">
       <div className="mb-8">
         <h2 className="text-xl font-bold tracking-wide">PROGRESS</h2>
         <p className="text-[10px] tracking-[0.2em] text-gray-400 mt-1">{formatFullDate()}</p>
       </div>
+
+      {/* Zero-data state — first-time user */}
+      {!hasAnyData && (
+        <div className="border border-gray-200 p-6 mb-8 text-center">
+          <p className="text-xs font-bold tracking-[0.3em] mb-2">NO DATA YET</p>
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            Log your first workout on the Today tab.<br />
+            Your stats and charts will appear here.
+          </p>
+        </div>
+      )}
 
       {/* 1. Summary Card */}
       <SummaryCard thisWeek={thisWeek} lastWeek={lastWeek} weekRange={weekRange} />
