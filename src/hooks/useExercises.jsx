@@ -354,3 +354,43 @@ export function useBodyWeight() {
 
   return { logs, logWeight, updateWeight };
 }
+
+// ── Streak ───────────────────────────────────────────────────
+export function useStreak() {
+  const { userId } = useAuth();
+  const [streak, setStreak] = useState(0);
+
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - 90);
+      const sinceStr = since.toISOString().split("T")[0];
+
+      const [{ data: sessions }, { data: cardio }] = await Promise.all([
+        supabase.from("workout_sessions").select("date").eq("user_id", userId).gte("date", sinceStr),
+        supabase.from("cardio_sessions").select("date").eq("user_id", userId).gte("date", sinceStr),
+      ]);
+
+      const allDates = new Set([
+        ...(sessions || []).map(s => s.date),
+        ...(cardio || []).map(s => s.date),
+      ]);
+
+      const today = new Date();
+      const ds = d => d.toISOString().split("T")[0];
+      const todayStr = ds(today);
+      const startOffset = allDates.has(todayStr) ? 0 : 1;
+      let s = 0;
+      for (let i = startOffset; i < 90; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        if (allDates.has(ds(d))) s++;
+        else break;
+      }
+      setStreak(s);
+    })();
+  }, [userId]);
+
+  return streak;
+}

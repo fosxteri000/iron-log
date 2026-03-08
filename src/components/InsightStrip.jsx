@@ -13,10 +13,11 @@ function getBalanceVerdict(balance) {
 
 export default function InsightStrip({ consistency, balance, bestSession, food, sleep }) {
   return (
-    <div
-      className="flex gap-3 overflow-x-auto pb-2 mb-6"
-      style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
-    >
+    <div className="relative mb-6">
+      <div
+        className="flex gap-3 overflow-x-auto pb-2"
+        style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+      >
       {/* Consistency */}
       <div className="min-w-[160px] border border-gray-200 p-3 flex-shrink-0">
         <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 mb-2">CONSISTENCY</p>
@@ -100,6 +101,12 @@ export default function InsightStrip({ consistency, balance, bestSession, food, 
           )}
         </div>
       )}
+      </div>
+      {/* Right-edge gradient: hints horizontal scroll */}
+      <div
+        className="absolute right-0 top-0 bottom-2 w-10 pointer-events-none"
+        style={{ background: "linear-gradient(to right, transparent, var(--t-bg, white))" }}
+      />
     </div>
   );
 }

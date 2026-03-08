@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { useExercises, useWeekSets } from "../hooks/useExercises";
+import { useExercises, useWeekSets, useStreak } from "../hooks/useExercises";
 import { useProfile } from "../hooks/useProfile";
 import { MOTIVATIONAL_PHRASES } from "../lib/seedData";
 import { SPLIT_TYPES, DAY_NAMES } from "../lib/splitConfig";
@@ -66,7 +66,7 @@ function RotatingHeader({ name }) {
         <DumbbellIcon size={16} />
       </span>
       <h2
-        className={`font-bold tracking-wide leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full ${msgClass}`}
+        className={`font-bold tracking-wide leading-snug text-center max-w-full line-clamp-2 ${msgClass}`}
         style={{ fontSize: "clamp(13px, 3.2vw, 17px)" }}
       >
         {displayMsg}
@@ -88,6 +88,7 @@ export default function Home() {
   const { exercises, loading } = useExercises();
   const { profile } = useProfile();
   const doneIds = useWeekSets();
+  const streak = useStreak();
 
   // Determine sections to show based on split
   const sections = useMemo(() => {
@@ -141,6 +142,12 @@ export default function Home() {
       <div className="mb-8 text-center">
         <RotatingHeader name={profile?.name?.toUpperCase() || ""} />
         <p className="text-[13px] text-gray-400 mt-1 font-normal tracking-[0.02em] font-sans">{formatHomeDate()}</p>
+        {streak > 1 && (
+          <div className="flex items-baseline justify-center gap-1.5 mt-2">
+            <span className="text-2xl font-bold leading-none">{streak}</span>
+            <span className="text-[10px] tracking-[0.3em] text-gray-400">DAY STREAK</span>
+          </div>
+        )}
       </div>
 
       {/* All-done banner — shown when every exercise in every section is logged this week */}

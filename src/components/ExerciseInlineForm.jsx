@@ -49,6 +49,12 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
   const [targetWeight, setTargetWeight] = useState("");
   const [targetReps, setTargetReps]     = useState("");
   const [sets, setSets]                 = useState([{ weight: "", reps: "" }]);
+
+  const allTimeMax = useMemo(() => {
+    let max = 0;
+    history.forEach(log => log.sets.forEach(s => { if (s.weight > max) max = s.weight; }));
+    return max;
+  }, [history]);
   const [showSets, setShowSets]         = useState(false);
   const [saving, setSaving]             = useState(false);
   const [savedMsg, setSavedMsg]         = useState("");
@@ -93,10 +99,17 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
     e.preventDefault();
     setSaving(true);
     setSaveError("");
+    const prevMax = allTimeMax;
     const { error } = await logSets(sets, targetWeight, targetReps);
     setSaving(false);
     if (!error) {
-      setSavedMsg(randomFrom(FUNNY_MESSAGES));
+      const validSets = sets.filter(s => s.weight && s.reps);
+      const maxSaved = validSets.length > 0 ? Math.max(...validSets.map(s => parseFloat(s.weight))) : 0;
+      if (prevMax > 0 && maxSaved > prevMax) {
+        setSavedMsg(`NEW PR! ${maxSaved}KG ${exercise.name.toUpperCase()}`);
+      } else {
+        setSavedMsg(randomFrom(FUNNY_MESSAGES));
+      }
       setTimeout(() => {
         setSavedMsg("");
         onSaved();
