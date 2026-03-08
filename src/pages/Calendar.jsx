@@ -102,7 +102,7 @@ export default function Calendar() {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={prevMonth}
-          className="text-base text-gray-400 active:text-black px-4 py-3 -ml-4"
+          className="text-2xl text-gray-400 active:text-black px-5 py-4 -ml-5"
           aria-label="Previous month"
         >
           ←
@@ -110,7 +110,7 @@ export default function Calendar() {
         <span className="text-xs font-bold tracking-[0.25em]">{monthName}</span>
         <button
           onClick={nextMonth}
-          className="text-base text-gray-400 active:text-black px-4 py-3 -mr-4"
+          className="text-2xl text-gray-400 active:text-black px-5 py-4 -mr-5"
           aria-label="Next month"
         >
           →
@@ -160,7 +160,7 @@ export default function Calendar() {
                 ${isToday && !isSelected ? "border border-black" : ""}
               `}
             >
-              <span className={`text-[10px] leading-none ${
+              <span className={`text-xs leading-none ${
                 isSelected ? "text-white" :
                 isToday ? "font-bold text-black" :
                 isPast ? "text-gray-400" : "text-gray-600"
@@ -177,13 +177,13 @@ export default function Calendar() {
               {(hasWorkout || hasCardio || isCheat) && (
                 <div className="flex gap-0.5 items-center">
                   {hasWorkout && (
-                    <BarbellIcon size={8} className={isSelected ? "text-white" : isPast ? "text-gray-400" : "text-black"} />
+                    <BarbellIcon size={10} className={isSelected ? "text-white" : isPast ? "text-gray-400" : "text-black"} />
                   )}
                   {hasCardio && (
-                    <HeartPulseIcon size={8} className={isSelected ? "text-white" : isPast ? "text-gray-400" : "text-black"} />
+                    <HeartPulseIcon size={10} className={isSelected ? "text-white" : isPast ? "text-gray-400" : "text-black"} />
                   )}
                   {isCheat && (
-                    <span className={`text-[8px] font-bold leading-none ${isSelected ? "text-white" : "calendar-cheat"}`}>
+                    <span className={`text-[9px] font-bold leading-none ${isSelected ? "text-white" : "calendar-cheat"}`}>
                       C
                     </span>
                   )}
@@ -192,7 +192,7 @@ export default function Calendar() {
 
               {/* Volume indicator */}
               {indicator && (
-                <span className={`text-[8px] font-bold leading-none ${
+                <span className={`text-[9px] font-bold leading-none ${
                   isSelected ? "text-white" : isPast ? "text-gray-400" : "text-black"
                 }`}>
                   {indicator}
