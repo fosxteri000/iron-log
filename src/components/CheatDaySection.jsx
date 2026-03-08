@@ -122,23 +122,24 @@ export default function CheatDaySection() {
   };
 
   const handleConfess = async () => {
-    if (!selected.size || confessingMsg) return;
+    if (!selected.size || confessingMsg || confessDone) return;
     const newOnes = [...selected];
     const roast = pickRoast(newOnes);
 
-    setConfessingMsg(roast);
-    await logCheatDay(newOnes); // merges with existing in Supabase
-
-    // Move newly confessed into the permanent set, clear pending
+    // Step 1: immediate "CONFESSED ✓" for 300ms — closes the loop
+    setConfessDone(true);
+    await logCheatDay(newOnes);
     setConfessed(prev => new Set([...prev, ...newOnes]));
     setSelected(new Set());
 
-    // After 4s show "CONFESSED ✓" briefly
+    // Step 2: swap to roast
     setTimeout(() => {
-      setConfessingMsg(null);
-      setConfessDone(true);
-      setTimeout(() => setConfessDone(false), 1500);
-    }, 4000);
+      setConfessDone(false);
+      setConfessingMsg(roast);
+
+      // Step 3: clear roast after 4s
+      setTimeout(() => setConfessingMsg(null), 4000);
+    }, 300);
   };
 
   const totalConfessed = confessed.size;
@@ -168,7 +169,7 @@ export default function CheatDaySection() {
 
               // Confessed = dark gray (permanent), Selected = cheat color, Neither = empty
               let btnStyle = {};
-              let btnClass = `flex flex-col items-center gap-1 py-2 border text-[9px] tracking-wide transition-colors`;
+              let btnClass = `flex flex-col items-center gap-1 py-2 border text-[10px] tracking-wide transition-colors`;
 
               if (isConfessed) {
                 btnClass += " text-white border-transparent";

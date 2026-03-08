@@ -60,6 +60,7 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
   const [savedMsg, setSavedMsg]         = useState("");
   const [saveError, setSaveError]       = useState("");
   const [selectedPill, setSelectedPill] = useState(null);
+  const [prOverlay, setPrOverlay]       = useState(null); // { weight, name }
 
   const lastSession = history[0] || null;
   const lastBest = useMemo(() => {
@@ -106,18 +107,36 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
       const validSets = sets.filter(s => s.weight && s.reps);
       const maxSaved = validSets.length > 0 ? Math.max(...validSets.map(s => parseFloat(s.weight))) : 0;
       if (prevMax > 0 && maxSaved > prevMax) {
-        setSavedMsg(`NEW PR! ${maxSaved}KG ${exercise.name.toUpperCase()}`);
+        setPrOverlay({ weight: maxSaved, name: exercise.name });
+        setTimeout(() => {
+          setPrOverlay(null);
+          onSaved();
+        }, 2500);
       } else {
         setSavedMsg(randomFrom(FUNNY_MESSAGES));
+        setTimeout(() => {
+          setSavedMsg("");
+          onSaved();
+        }, 1400);
       }
-      setTimeout(() => {
-        setSavedMsg("");
-        onSaved();
-      }, 1400);
     } else {
       setSaveError("Failed to save. Check your connection and try again.");
     }
   };
+
+  if (prOverlay) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white fade-in"
+        onClick={() => { setPrOverlay(null); onSaved(); }}
+      >
+        <p className="text-[10px] tracking-[0.5em] text-gray-500 mb-6">NEW PERSONAL RECORD</p>
+        <p className="font-bold mb-3" style={{ fontSize: "clamp(56px, 18vw, 80px)" }}>{prOverlay.weight}KG</p>
+        <p className="text-lg font-bold tracking-[0.15em] text-center px-8">{prOverlay.name.toUpperCase()}</p>
+        <p className="text-[10px] tracking-widest text-gray-700 mt-12">TAP TO DISMISS</p>
+      </div>
+    );
+  }
 
   if (savedMsg) {
     return (
@@ -155,9 +174,9 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
                     className={`pill-btn flex-1 py-2 px-2 border text-center transition-all
                       ${selectedPill === "A" ? "active" : "border-gray-200 bg-white"}`}
                   >
-                    <span className="text-[9px] tracking-widest block opacity-60">A</span>
+                    <span className="text-[10px] tracking-widest block opacity-60">A</span>
                     <span className="text-sm font-bold block">{overloadA.weight}kg × {overloadA.reps}</span>
-                    <span className="text-[9px] text-gray-400 block mt-0.5">
+                    <span className="text-[10px] text-gray-400 block mt-0.5">
                       {overloadA.type === "weight" ? "Increase weight" : "Add 1 rep"}
                     </span>
                   </button>
@@ -169,9 +188,9 @@ export default function ExerciseInlineForm({ exerciseId, exercise, onSaved }) {
                     className={`pill-btn flex-1 py-2 px-2 border text-center transition-all
                       ${selectedPill === "B" ? "active" : "border-gray-200 bg-white"}`}
                   >
-                    <span className="text-[9px] tracking-widest block opacity-60">B</span>
+                    <span className="text-[10px] tracking-widest block opacity-60">B</span>
                     <span className="text-sm font-bold block">{overloadB.weight}kg × {overloadB.reps}</span>
-                    <span className="text-[9px] text-gray-400 block mt-0.5">Add 1 rep</span>
+                    <span className="text-[10px] text-gray-400 block mt-0.5">Add 1 rep</span>
                   </button>
                 )}
               </div>

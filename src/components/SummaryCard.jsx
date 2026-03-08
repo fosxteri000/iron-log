@@ -29,15 +29,15 @@ export default function SummaryCard({ thisWeek, lastWeek, weekRange }) {
       <div className="flex gap-4 border-t border-b border-gray-100 py-3 mb-3">
         <div className="text-center flex-1">
           <p className="text-lg font-bold">{thisWeek.sessions}</p>
-          <p className="text-[9px] text-gray-400 tracking-widest">SESSIONS</p>
+          <p className="text-[10px] text-gray-400 tracking-widest">SESSIONS</p>
         </div>
         <div className="text-center flex-1">
           <p className="text-lg font-bold">{thisWeek.cardio}</p>
-          <p className="text-[9px] text-gray-400 tracking-widest">CARDIO</p>
+          <p className="text-[10px] text-gray-400 tracking-widest">CARDIO</p>
         </div>
         <div className="text-center flex-1">
           <p className="text-lg font-bold calendar-cheat">{thisWeek.cheat}</p>
-          <p className="text-[9px] text-gray-400 tracking-widest">CHEAT</p>
+          <p className="text-[10px] text-gray-400 tracking-widest">CHEAT</p>
         </div>
       </div>
 

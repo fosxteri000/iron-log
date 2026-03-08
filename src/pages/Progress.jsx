@@ -14,8 +14,6 @@ import {
   getFoodLast7Days, getSleepLast7Days,
 } from "../lib/statsQueries";
 import { getDonutMessage, getBarMessage, getVolumeMessage } from "../lib/statsInsights";
-import { getFoodWeekStats } from "../lib/foodStats";
-import { getSleepWeekStats } from "../lib/sleepStats";
 import { TrophyIcon } from "../components/Icons";
 import SummaryCard from "../components/SummaryCard";
 import DonutChart from "../components/DonutChart";

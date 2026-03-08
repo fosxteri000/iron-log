@@ -37,23 +37,10 @@ export default function Calendar() {
     return map;
   }, [workoutLogs]);
 
-  const sortedWorkoutDates = useMemo(() =>
-    Object.keys(volumeByDate).sort(), [volumeByDate]);
-
   const cardioDates = useMemo(() => new Set(cardioLogs.map(l => l.date)), [cardioLogs]);
 
   // Cheat day dates
   const cheatDateSet = useMemo(() => new Set(cheatDays.map(c => c.date)), [cheatDays]);
-
-  function getVolumeIndicator(dateStr) {
-    const idx = sortedWorkoutDates.indexOf(dateStr);
-    if (idx <= 0) return "○";
-    const prev = volumeByDate[sortedWorkoutDates[idx - 1]];
-    const curr = volumeByDate[dateStr];
-    if (curr > prev * 1.02) return "+";
-    if (curr < prev * 0.98) return "−";
-    return "○";
-  }
 
   // Build calendar grid
   const offset = getMonthOffset(year, month);
@@ -120,7 +107,7 @@ export default function Calendar() {
       {/* Weekday headers */}
       <div className="grid grid-cols-7 mb-1">
         {WEEKDAYS.map(d => (
-          <div key={d} className="text-center text-[9px] text-gray-400 tracking-widest py-1">
+          <div key={d} className="text-center text-[10px] text-gray-400 tracking-widest py-1">
             {d}
           </div>
         ))}
@@ -137,11 +124,9 @@ export default function Calendar() {
           const hasWorkout = !!volumeByDate[dateStr];
           const hasCardio = cardioDates.has(dateStr);
           const isCheat = cheatDateSet.has(dateStr);
-          const indicator = hasWorkout ? getVolumeIndicator(dateStr) : null;
           const isSelected = selected === day;
           const isToday = dateStr === todayStr;
           const isPast = dateStr < todayStr;
-          const noActivity = isPast && !hasWorkout && !hasCardio && !isCheat;
 
           let cellBg;
           if (isSelected) {
@@ -168,11 +153,6 @@ export default function Calendar() {
                 {day}
               </span>
 
-              {/* Past day with no activity: neutral dot */}
-              {noActivity && !isSelected && (
-                <span className="text-[8px] text-gray-200 leading-none">·</span>
-              )}
-
               {/* Activity icons + cheat marker */}
               {(hasWorkout || hasCardio || isCheat) && (
                 <div className="flex gap-0.5 items-center">
@@ -190,14 +170,6 @@ export default function Calendar() {
                 </div>
               )}
 
-              {/* Volume indicator */}
-              {indicator && (
-                <span className={`text-[9px] font-bold leading-none ${
-                  isSelected ? "text-white" : isPast ? "text-gray-400" : "text-black"
-                }`}>
-                  {indicator}
-                </span>
-              )}
             </button>
           );
         })}
@@ -207,19 +179,16 @@ export default function Calendar() {
       <div className="flex flex-wrap gap-3 mt-3 mb-6">
         <div className="flex items-center gap-1">
           <BarbellIcon size={10} className="text-black" />
-          <span className="text-[9px] tracking-widest text-gray-400">STRENGTH</span>
+          <span className="text-[10px] tracking-widest text-gray-400">STRENGTH</span>
         </div>
         <div className="flex items-center gap-1">
           <HeartPulseIcon size={10} className="text-black" />
-          <span className="text-[9px] tracking-widest text-gray-400">CARDIO</span>
+          <span className="text-[10px] tracking-widest text-gray-400">CARDIO</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="calendar-cheat text-[9px] font-bold">C</span>
-          <span className="text-[9px] tracking-widest text-gray-400">CHEAT</span>
+          <span className="calendar-cheat text-[10px] font-bold">C</span>
+          <span className="text-[10px] tracking-widest text-gray-400">CHEAT</span>
         </div>
-        <span className="text-[9px] tracking-widest text-gray-400">+ UP</span>
-        <span className="text-[9px] tracking-widest text-gray-400">− DOWN</span>
-        <span className="text-[9px] tracking-widest text-gray-400">· REST</span>
       </div>
 
       {/* Selected day detail */}
@@ -271,7 +240,7 @@ export default function Calendar() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {selectedCheats[0].selections.map(s => (
-                  <span key={s} className="text-[9px] border border-gray-200 px-2 py-0.5 calendar-cheat">
+                  <span key={s} className="text-[10px] border border-gray-200 px-2 py-0.5 calendar-cheat">
                     {s.replace(/_/g, " ").toUpperCase()}
                   </span>
                 ))}

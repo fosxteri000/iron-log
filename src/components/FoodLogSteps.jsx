@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DrumPicker from "./DrumPicker";
 import {
   BreakfastIcon, LunchIcon, DinnerIcon, SnackIcon, OtherFoodIcon,
   CleanFoodIcon, MixedFoodIcon, JunkFoodIcon,
@@ -29,20 +28,7 @@ const CAL_RANGES = [
   { label: "IDK",     value: null },
 ];
 
-const MACRO_ITEMS = Array.from({ length: 61 }, (_, i) => ({
-  value: i * 5,
-  label: `${i * 5}g`,
-}));
-
-function buildInitialMacros(meal) {
-  return {
-    carbs:   { val: meal?.carbs_g   ?? 45, included: meal?.carbs_g   != null },
-    protein: { val: meal?.protein_g ?? 30, included: meal?.protein_g != null },
-    fat:     { val: meal?.fat_g     ?? 15, included: meal?.fat_g     != null },
-  };
-}
-
-// ─── Step dots — 6×6 squares, no border-radius ─────────────
+// ─── Step dots ───────────────────────────────────────────────
 
 function StepDots({ current, total }) {
   return (
@@ -51,37 +37,12 @@ function StepDots({ current, total }) {
         <div
           key={i}
           style={{
-            width: 6,
-            height: 6,
+            width: 6, height: 6,
             background: i === current - 1 ? "var(--t-accent)" : "transparent",
             border: "1px solid var(--t-border)",
           }}
         />
       ))}
-    </div>
-  );
-}
-
-// ─── Navigation row ────────────────────────────────────────
-
-function NavRow({ onBack, onNext, nextLabel = "NEXT →", backLabel = "← BACK", nextDisabled }) {
-  return (
-    <div className="flex justify-between items-center mt-5">
-      <button
-        type="button"
-        onClick={onBack}
-        className="text-[10px] tracking-widest text-gray-400 active:text-black transition-colors"
-      >
-        {backLabel}
-      </button>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={nextDisabled}
-        className="text-[10px] tracking-widest disabled:opacity-30 active:opacity-60 transition-opacity"
-      >
-        {nextLabel}
-      </button>
     </div>
   );
 }
@@ -96,7 +57,6 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
   const [calories, setCalories] = useState(meal?.calories  ?? null);
   const [calInput, setCalInput] = useState(meal?.calories  != null ? String(meal.calories) : "");
   const [calRange, setCalRange] = useState(null);
-  const [macros,   setMacros]   = useState(() => buildInitialMacros(meal));
   const [quality,  setQuality]  = useState(meal?.quality   || "");
   const [saving,   setSaving]   = useState(false);
 
@@ -107,7 +67,6 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
     setCalories(meal?.calories  ?? null);
     setCalInput(meal?.calories  != null ? String(meal.calories) : "");
     setCalRange(null);
-    setMacros(buildInitialMacros(meal));
     setQuality(meal?.quality || "");
     setSaving(false);
   }, [meal]);
@@ -119,12 +78,9 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
     if (!mealType) return;
     setSaving(true);
     await onSave({
-      meal_type:  mealType,
-      calories:   calories != null ? parseInt(calories) : null,
-      carbs_g:    macros.carbs.included   ? macros.carbs.val   : null,
-      protein_g:  macros.protein.included ? macros.protein.val : null,
-      fat_g:      macros.fat.included     ? macros.fat.val     : null,
-      quality:    quality || null,
+      meal_type: mealType,
+      calories:  calories != null ? parseInt(calories) : null,
+      quality:   quality || null,
     });
     setSaving(false);
     onClose();
@@ -142,7 +98,6 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
     <div>
       <p className="text-[10px] tracking-widest text-gray-400 mb-4">WHAT MEAL?</p>
 
-      {/* 2×2 grid */}
       <div className="grid grid-cols-2 gap-2 mb-2">
         {MEAL_TYPES.slice(0, 4).map(({ key, label, Icon }) => {
           const active = mealType === key;
@@ -182,7 +137,6 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
         );
       })()}
 
-      {/* Back / cancel */}
       <div className="flex justify-start mt-4">
         <button
           type="button"
@@ -195,13 +149,13 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
     </div>
   );
 
-  // ── Step 2: Calories ──────────────────────────────────────
+  // ── Step 2: Calories + Quality (combined) ──────────────────
   const step2 = (
     <div>
-      <p className="text-[10px] tracking-widest text-gray-400 mb-4 text-center">CALORIES</p>
+      {/* Calories */}
+      <p className="text-[10px] tracking-widest text-gray-400 mb-3">CALORIES</p>
 
-      {/* Range pills — centred */}
-      <div className="flex flex-wrap gap-1.5 mb-5 justify-center">
+      <div className="flex flex-wrap gap-1.5 mb-4 justify-center">
         {CAL_RANGES.map(r => {
           const active = calRange === r.label;
           return (
@@ -226,8 +180,7 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
         })}
       </div>
 
-      {/* 48px number input, kcal label below — centred */}
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-col items-center gap-1 mb-5">
         <input
           type="number"
           inputMode="numeric"
@@ -239,116 +192,65 @@ export default function FoodLogSteps({ meal, onSave, onClose }) {
             setCalRange(null);
           }}
           className="w-32 border-b border-black py-1 text-center focus:outline-none bg-transparent"
-          style={{ fontSize: 48, fontWeight: 300, lineHeight: 1 }}
+          style={{ fontSize: 40, fontWeight: 300, lineHeight: 1 }}
         />
-        <span className="text-[11px] text-gray-400 tracking-widest">kcal</span>
+        <span className="text-[10px] text-gray-400 tracking-widest">kcal</span>
       </div>
 
-      <NavRow onBack={goBack} onNext={goNext} />
-    </div>
-  );
-
-  // ── Step 3: Macros ────────────────────────────────────────
-  const step3 = (
-    <div>
-      <p className="text-[10px] tracking-widest text-gray-400 mb-4">MACROS</p>
-
-      <div className="flex justify-between gap-3">
-        {[
-          { key: "carbs",   label: "CARBS"   },
-          { key: "protein", label: "PROTEIN" },
-          { key: "fat",     label: "FAT"     },
-        ].map(({ key, label }) => (
-          <div key={key} className="flex flex-col items-center gap-2 flex-1">
-            <DrumPicker
-              key={`${key}-${meal?.id ?? "new"}`}
-              items={MACRO_ITEMS}
-              initialValue={macros[key].val}
-              dim={!macros[key].included}
-              label={label}
-              onChange={val => setMacros(m => ({ ...m, [key]: { val, included: true } }))}
-            />
-            <button
-              type="button"
-              onClick={() => setMacros(m => ({ ...m, [key]: { ...m[key], included: !m[key].included } }))}
-              className={`text-[9px] tracking-widest py-1 px-2 border transition-colors
-                ${!macros[key].included
-                  ? "border-black text-black"
-                  : "border-gray-200 text-gray-400"}`}
-            >
-              IDK
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <NavRow onBack={goBack} onNext={goNext} />
-    </div>
-  );
-
-  // ── Step 4: Quality ────────────────────────────────────────
-  const step4 = (
-    <div>
-      <p className="text-[10px] tracking-widest text-gray-400 mb-4">HOW CLEAN?</p>
-
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {QUALITY_OPTIONS.map(({ key, label, sub, Icon }) => {
-          const active = quality === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setQuality(q => q === key ? "" : key)}
-              className={`flex flex-col items-center gap-2 py-4 border text-[9px] tracking-widest font-bold transition-colors
-                ${active
-                  ? "bg-black text-white border-black"
-                  : "border-gray-200 active:border-black"}`}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-              <span
-                className="text-[9px] font-normal"
-                style={{ opacity: active ? 0.7 : undefined }}
+      {/* Quality */}
+      <div className="border-t border-gray-100 pt-4 mb-4">
+        <p className="text-[10px] tracking-widest text-gray-400 mb-3">HOW CLEAN?</p>
+        <div className="grid grid-cols-3 gap-2">
+          {QUALITY_OPTIONS.map(({ key, label, sub, Icon }) => {
+            const active = quality === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setQuality(q => q === key ? "" : key)}
+                className={`flex flex-col items-center gap-2 py-4 border text-[10px] tracking-widest font-bold transition-colors
+                  ${active
+                    ? "bg-black text-white border-black"
+                    : "border-gray-200 active:border-black"}`}
               >
-                {sub}
-              </span>
-            </button>
-          );
-        })}
+                <Icon size={20} />
+                <span>{label}</span>
+                <span className="text-[10px] font-normal" style={{ opacity: active ? 0.6 : undefined, color: active ? undefined : "#9ca3af" }}>
+                  {sub}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* DONE full-width */}
       <button
         type="button"
         disabled={saving}
         onClick={handleSave}
-        className="w-full py-3 bg-black text-white text-xs tracking-widest disabled:opacity-50"
+        className="w-full py-3 bg-black text-white text-xs tracking-widest disabled:opacity-50 mb-3"
       >
         {saving ? "SAVING..." : meal ? "UPDATE MEAL" : "DONE"}
       </button>
 
-      <div className="flex justify-start mt-3">
-        <button
-          type="button"
-          onClick={goBack}
-          className="text-[10px] tracking-widest text-gray-400 active:text-black transition-colors"
-        >
-          ← BACK
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={goBack}
+        className="text-[10px] tracking-widest text-gray-400 active:text-black transition-colors"
+      >
+        ← BACK
+      </button>
     </div>
   );
 
-  const steps = [step1, step2, step3, step4];
+  const steps = [step1, step2];
 
   return (
     <div className="p-4">
-      {/* Header: dots */}
       <div className="flex items-center justify-between mb-5">
-        <StepDots current={step} total={4} />
+        <StepDots current={step} total={2} />
       </div>
 
-      {/* Step content — overflow hidden for slide animation */}
       <div className="food-steps-container">
         <div key={`${step}-${dir}`} className={animClass}>
           {steps[step - 1]}
