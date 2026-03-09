@@ -3,10 +3,10 @@ import LineChart from "./LineChart";
 
 export default function VolumeTrendChart({ data, mode, onModeChange, insightText }) {
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-1">
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
         <p className="text-[11px] font-bold tracking-[0.12em]">VOLUME TREND</p>
-        <div className="flex border border-gray-200 overflow-hidden">
+        <div className="flex border border-gray-200 overflow-hidden w-fit">
           {["weekly", "monthly"].map(m => (
             <button
               key={m}
@@ -22,15 +22,17 @@ export default function VolumeTrendChart({ data, mode, onModeChange, insightText
 
       {data.length >= 2 ? (
         <>
-          <div className="border border-gray-200 p-3 mt-2">
-            <LineChart data={data} height={90} />
+          <div className="border border-gray-200 p-3 overflow-x-auto -mx-3">
+            <div style={{ minWidth: "350px" }}>
+              <LineChart data={data} height={100} />
+            </div>
           </div>
           {insightText && (
-            <p className="text-xs italic text-gray-400 mt-2">{insightText}</p>
+            <p className="text-[11px] italic text-gray-400 mt-2 leading-relaxed">{insightText}</p>
           )}
         </>
       ) : (
-        <div className="text-center py-6 border border-gray-200 mt-2">
+        <div className="text-center py-8 border border-gray-200">
           <p className="text-[10px] tracking-[0.3em] text-gray-300">NOT ENOUGH DATA</p>
         </div>
       )}

@@ -1,9 +1,9 @@
 import React from "react";
 
-export default function LineChart({ data, width = 300, height = 80 }) {
+export default function LineChart({ data, width = 400, height = 90 }) {
   if (!data || data.length < 2) {
     return (
-      <div className="flex items-center justify-center h-20 text-[10px] text-gray-300 tracking-widest">
+      <div className="flex items-center justify-center py-12 text-[10px] text-gray-300 tracking-widest">
         NOT ENOUGH DATA
       </div>
     );
@@ -14,18 +14,17 @@ export default function LineChart({ data, width = 300, height = 80 }) {
   const max = Math.max(...values);
   const range = max - min || 1;
 
-  const padX = 6;
-  const padY = 10;
-  const chartW = width - padX * 2;
-  const chartH = height - padY * 2;
+  const padL = 24, padR = 8, padT = 12, padB = 18;
+  const chartW = width - padL - padR;
+  const chartH = height - padT - padB;
 
   const points = data.map((d, i) => {
-    const x = padX + (i / (data.length - 1)) * chartW;
-    const y = padY + chartH - ((d.value - min) / range) * chartH;
+    const x = padL + (i / (data.length - 1)) * chartW;
+    const y = padT + chartH - ((d.value - min) / range) * chartH;
     return { x, y, ...d };
   });
 
-  // Smooth path using quadratic bezier
+  // Smooth path using cubic bezier
   let pathD = `M ${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
@@ -37,37 +36,100 @@ export default function LineChart({ data, width = 300, height = 80 }) {
     }
   }
 
-  const areaPath = pathD + ` L ${points[points.length - 1].x} ${padY + chartH} L ${points[0].x} ${padY + chartH} Z`;
+  const areaPath = pathD + ` L ${points[points.length - 1].x} ${padT + chartH} L ${points[0].x} ${padT + chartH} Z`;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="w-full"
+      preserveAspectRatio="xMidYMid meet"
+      style={{ minHeight: `${height}px` }}
+    >
+      {/* Grid lines */}
+      {[0.25, 0.5, 0.75].map((ratio, i) => (
+        <line
+          key={`grid-${i}`}
+          x1={padL}
+          y1={padT + chartH * (1 - ratio)}
+          x2={width - padR}
+          y2={padT + chartH * (1 - ratio)}
+          stroke="currentColor"
+          strokeOpacity="0.06"
+          strokeWidth="0.5"
+        />
+      ))}
+
+      {/* Y-axis */}
+      <line
+        x1={padL}
+        y1={padT}
+        x2={padL}
+        y2={padT + chartH}
+        stroke="currentColor"
+        strokeOpacity="0.1"
+        strokeWidth="0.8"
+      />
+
+      {/* X-axis */}
+      <line
+        x1={padL}
+        y1={padT + chartH}
+        x2={width - padR}
+        y2={padT + chartH}
+        stroke="currentColor"
+        strokeOpacity="0.1"
+        strokeWidth="0.8"
+      />
+
       {/* Area fill */}
-      <path d={areaPath} fill="currentColor" fillOpacity="0.05" />
+      <path d={areaPath} fill="currentColor" fillOpacity="0.04" />
+
       {/* Line */}
       <path
         d={pathD}
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      {/* End dots */}
-      <circle cx={points[0].x} cy={points[0].y} r="2.5" fill="currentColor" opacity="0.4" />
-      <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="3" fill="currentColor" />
-      {/* Labels */}
-      <text x={points[0].x} y={height - 1} textAnchor="start" fontSize="6.5" fill="currentColor" opacity="0.4">
+
+      {/* Start dot */}
+      <circle cx={points[0].x} cy={points[0].y} r="2.5" fill="currentColor" opacity="0.3" />
+
+      {/* End dot (highlighted) */}
+      <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="3.5" fill="currentColor" />
+
+      {/* Start label */}
+      <text
+        x={points[0].x}
+        y={height - 2}
+        textAnchor="start"
+        fontSize="7"
+        fill="currentColor"
+        opacity="0.4"
+      >
         {points[0].label}
       </text>
-      <text x={points[points.length - 1].x} y={height - 1} textAnchor="end" fontSize="6.5" fill="currentColor" opacity="0.4">
-        {points[points.length - 1].label}
-      </text>
-      {/* Current value */}
+
+      {/* End label */}
       <text
         x={points[points.length - 1].x}
-        y={points[points.length - 1].y - 6}
+        y={height - 2}
         textAnchor="end"
         fontSize="7"
+        fill="currentColor"
+        opacity="0.4"
+      >
+        {points[points.length - 1].label}
+      </text>
+
+      {/* Current value tooltip */}
+      <text
+        x={points[points.length - 1].x - 3}
+        y={points[points.length - 1].y - 8}
+        textAnchor="end"
+        fontSize="8"
         fontWeight="bold"
         fill="currentColor"
       >

@@ -177,7 +177,7 @@ export default function Progress() {
       </div>
 
       {/* ── 3. Two-column charts ──────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
 
         {/* Left: Training split donut */}
         <div className="border border-gray-200 p-3">
@@ -198,18 +198,22 @@ export default function Progress() {
         <div className="border border-gray-200 p-3">
           <p className="text-[10px] font-bold tracking-[0.2em] mb-0.5">SESSIONS</p>
           <p className="text-[10px] text-gray-400 tracking-wide mb-2">8 weeks</p>
-          <WeeklyBarChart data={weeklySessions} height={120} />
-          <div className="flex items-center gap-2 mt-1">
+          <div className="relative -mx-2 -mb-2 overflow-x-auto">
+            <div style={{ minWidth: "350px" }}>
+              <WeeklyBarChart data={weeklySessions} height={140} />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 mt-2.5 pt-2 border-t border-gray-100">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-black" />
-              <span className="text-[10px] text-gray-400">Str</span>
+              <span className="text-[10px] text-gray-400">Strength</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-black opacity-30" />
               <span className="text-[10px] text-gray-400">Cardio</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "var(--t-cheat)" }} />
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--t-cheat)" }} />
               <span className="text-[10px] text-gray-400">Cheat</span>
             </div>
           </div>
