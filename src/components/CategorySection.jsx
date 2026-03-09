@@ -18,6 +18,17 @@ function Chevron({ open }) {
   );
 }
 
+function DiagonalArrowIcon() {
+  return (
+    <svg
+      width="10" height="10" viewBox="0 0 10 10" fill="none"
+      className="text-gray-300 inline align-[-1px]"
+    >
+      <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function CategorySection({ title, exercises, doneIds }) {
   const sectionRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -117,9 +128,9 @@ export default function CategorySection({ title, exercises, doneIds }) {
                             <div className="flex items-center gap-2 shrink-0 pr-1">
                               <button
                                 onClick={(e) => { e.stopPropagation(); navigate(`/exercise/${ex.id}`); }}
-                                className="text-[9px] tracking-wide text-gray-300 active:text-black transition-colors px-1.5 py-1"
+                                className="text-[9px] tracking-wide text-gray-300 active:text-black transition-colors px-1.5 py-1 flex items-center gap-1"
                               >
-                                History ↗
+                                History <DiagonalArrowIcon />
                               </button>
                               <button
                                 onClick={() => toggleExpand(ex.id)}
